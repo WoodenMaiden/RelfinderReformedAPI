@@ -2,12 +2,12 @@
   "name": "relfinderreformed",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/app.ts",
+  "main": "./dist/app.js",
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
     "build": "rm dist/* ; npm run prebuild && tsc",
     "dev:start": "npm-run-all build start",
-    "dev": "nodemon --watch src -e ts,js --exec npm run dev:start",
+    "dev": "nodemon --watch src -e ts,js,ejs --exec npm run dev:start",
     "start": "node ."
   },
   "author": "Yann POMIE",
