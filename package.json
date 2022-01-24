@@ -5,7 +5,7 @@
   "main": "./dist/app.js",
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
-    "build": "rm dist/* ; npm run prebuild && tsc",
+    "build": "rm -rf dist/* ; npm run prebuild && tsc",
     "dev:start": "npm-run-all build -s start",
     "dev": "nodemon --watch src -e ts,js,ejs --exec npm run dev:start",
     "start": "node ."
