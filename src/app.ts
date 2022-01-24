@@ -1,0 +1,1 @@
+console.log("Hello SPARQL! (and world as well!!)")
