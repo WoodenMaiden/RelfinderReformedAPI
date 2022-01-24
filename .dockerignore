@@ -1,0 +1,5 @@
+node_modules
+dotenvexample.env
+.git
+.gitignore
+README.md
