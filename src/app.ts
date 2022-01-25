@@ -1,5 +1,4 @@
 require('dotenv').config();
-const queries = require('./utils/queriesObject')
 const express = require('express')
 
 const app = express()
@@ -10,8 +9,7 @@ app.get("/info", (req: any, res: any) => {
 })
 
 app.get("/nodes", (req: any, res: any) => {
-    console.log(queries)
-    res.status(200).send(queries)
+    res.status(200).send()
 })
 
 app.listen(PORT, () => {
