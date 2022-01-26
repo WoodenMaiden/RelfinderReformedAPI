@@ -13,6 +13,7 @@
   "author": "Yann POMIE",
   "license": "ISC",
   "dependencies": {
+    "@types/sparql-http-client": "^2.2.8",
     "clownface": "^1.4.0",
     "dotenv": "^14.2.0",
     "express": "^4.17.2",
