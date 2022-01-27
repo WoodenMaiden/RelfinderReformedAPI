@@ -5,6 +5,7 @@ const express = require('express')
 
 const sparqlclient = require('./graph/endpoint')
 const queries = require('./graph/queries')
+const RDFGraph = require('./graph/rdfgraph')
 
 const app = express()
 const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
@@ -22,6 +23,10 @@ app.get("/nodes", async (req: any, res: any) => {
     catch (e){
         res.status(500).send(e)
     }
+})
+
+app.get(/relfinder\/\w+\/\w+/, async (req: any, res: any) => {
+    res.status(200).send(RDFGraph)
 })
 
 app.listen(PORT, () => {
