@@ -1,7 +1,6 @@
 import { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
 
-const Graph = require('graphology').MultiDirectedGraph;
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
 
@@ -42,14 +41,62 @@ class RDFGraph {
         }
 
     }
-/*
-//TODO
-    kosaraju(maxMoves: number, node1: string, node2:string ): void {
 
+    static nodeExists(graph: MultiDirectedGraph, toFind: string): boolean{
+        let val;
+        graph.findNode((node: string): any => {
+            if (node === toFind) val = true;
+            else val = false;
+        })
+        return val
     }
 
-    multipleKosaraju(maxMoves: number, node1: string, node2: string, ...nodes: string[] ) {
+    depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string) {
+        if (!RDFGraph.nodeExists(baseGraph, startNode)) return new MultiDirectedGraph();
+        const depthed = new MultiDirectedGraph();
+        depthed.addNode(startNode)
+        baseGraph.forEachOutboundNeighbor(startNode, () => {
 
+        })
+    }
+
+    /*depthFirstSearchRec(graph: MultiDirectedGraph, depthRemaining: number = 5): MultiDirectedGraph {
+        if (depthRemaining <= 0) return graph;
+        else {
+            //--depthRemaining;
+            //for(graph)
+            //    ;
+            //
+        }
+        // return new MultiDirectedGraph()
+    }*/
+
+
+// TODO
+
+    /**
+     * Returns a Graph that has the 2 inputs nodes and all nocdes in between
+     * @param maxMoves
+     * @param node1
+     * @param node2
+     */
+    kosaraju(maxMoves: number, node1: string, node2:string ): MultiDirectedGraph {
+
+
+        return new MultiDirectedGraph()
+    }
+
+    /**
+     *
+     * @param maxMoves
+     * @param node1
+     * @param node2
+     * @param nodes
+     * @returns
+     */
+/*    multipleKosaraju(maxMoves: number, node1: string, node2: string, ...nodes: string[]): MultiDirectedGraph  {
+
+        return new MultiDirectedGraph()
     }
 */
 }
