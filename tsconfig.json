@@ -12,7 +12,11 @@
             "*": [
                 "node_modules/*"
             ]
-        }
+        }, 
+        "types": [
+            "graphology",
+            "sparql-http-client"
+        ]
     },
     "include": [
         "src/**/*"
