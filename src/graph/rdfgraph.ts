@@ -42,34 +42,47 @@ class RDFGraph {
 
     }
 
-    static nodeExists(graph: MultiDirectedGraph, toFind: string): boolean{
+    static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
         let val;
-        graph.findNode((node: string): any => {
+        aGraph.findNode((node: string): any => {
             if (node === toFind) val = true;
             else val = false;
         })
         return val
     }
 
-    depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string) {
-        if (!RDFGraph.nodeExists(baseGraph, startNode)) return new MultiDirectedGraph();
+    depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string, depth: number = 5): MultiDirectedGraph {
+        if (!RDFGraph.nodeExists(baseGraph, startNode) || depth <= 0) return new MultiDirectedGraph();
         const depthed = new MultiDirectedGraph();
-        depthed.addNode(startNode)
-        baseGraph.forEachOutboundNeighbor(startNode, () => {
+        depthed.addNode(startNode) // equivalent of tagging
 
+
+        // 👇 forloop to put in depthFirstSearchRec()
+        baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
+            if (!RDFGraph.nodeExists(depthed, neighbor)){
+                depthed.addNode(neighbor, attributes)
+                // TODO add a EdgeExists to add an edge between the starting point and the neighboors
+                this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
+            }
         })
+
+        return depthed
     }
 
-    /*depthFirstSearchRec(graph: MultiDirectedGraph, depthRemaining: number = 5): MultiDirectedGraph {
-        if (depthRemaining <= 0) return graph;
-        else {
+    depthFirstSearchRec(basegraph: MultiDirectedGraph, node: string, depthRemaining: number, genGraph: MultiDirectedGraph): void {
+        if (depthRemaining <= 0) return;
+
+
+
+        // TODO
+        /*else {
             //--depthRemaining;
             //for(graph)
             //    ;
             //
-        }
+        }*/
         // return new MultiDirectedGraph()
-    }*/
+    }
 
 
 // TODO
