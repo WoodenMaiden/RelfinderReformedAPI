@@ -66,7 +66,7 @@ class RDFGraph {
         const depthed = new MultiDirectedGraph();
         depthed.addNode(startNode) // equivalent of tagging
 
-        --depth;
+        // --depth;
 
         if (baseGraph.outNeighbors(startNode) === []) return depthed
 
@@ -74,7 +74,7 @@ class RDFGraph {
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
             if (!RDFGraph.nodeExists(depthed, neighbor)){
                 depthed.addNode(neighbor, attributes);
-                baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any) => {
+                baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any): void => {
                     if (!RDFGraph.edgeExists(depthed, edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
                 });
                 this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
@@ -85,10 +85,19 @@ class RDFGraph {
     }
 
     depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, depthRemaining: number, genGraph: MultiDirectedGraph): void {
+        --depthRemaining;
         if (depthRemaining <= 0) return;
         if (baseGraph.outNeighbors(node) === []) return;
 
-
+        baseGraph.forEachOutboundNeighbor(node, (neighbor: string, attributes: any): void => {
+            if (!RDFGraph.nodeExists(genGraph, neighbor)) {
+                genGraph.addNode(neighbor, attributes)
+                baseGraph.forEachDirectedEdge(node, neighbor, (edge: string, edgeAttributes: any): void => {
+                    if(!RDFGraph.edgeExists(genGraph, edge)) genGraph.addDirectedEdgeWithKey(edge, node, neighbor, edgeAttributes)
+                })
+            }
+            this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, genGraph)
+        })
     }
 
 
