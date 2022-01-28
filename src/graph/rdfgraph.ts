@@ -51,6 +51,15 @@ class RDFGraph {
         return val
     }
 
+    static edgeExists(aGraph: MultiDirectedGraph, toFind: string): boolean {
+        let val;
+        aGraph.findOutEdge((edge: string): any => {
+            if (edge === toFind) val = true;
+            else val = false;
+        })
+        return val
+    }
+
     depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string, depth: number = 5): MultiDirectedGraph {
         if (!RDFGraph.nodeExists(baseGraph, startNode) || depth <= 0) return new MultiDirectedGraph();
         const depthed = new MultiDirectedGraph();
