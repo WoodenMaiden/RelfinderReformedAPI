@@ -68,6 +68,8 @@ class RDFGraph {
 
         --depth;
 
+        if (baseGraph.outNeighbors(startNode) === []) return depthed
+
         // 👇 forloop to put in depthFirstSearchRec()
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
             if (!RDFGraph.nodeExists(depthed, neighbor)){
@@ -82,19 +84,11 @@ class RDFGraph {
         return depthed
     }
 
-    depthFirstSearchRec(basegraph: MultiDirectedGraph, node: string, depthRemaining: number, genGraph: MultiDirectedGraph): void {
+    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, depthRemaining: number, genGraph: MultiDirectedGraph): void {
         if (depthRemaining <= 0) return;
+        if (baseGraph.outNeighbors(node) === []) return;
 
 
-
-        // TODO
-        /*else {
-            //--depthRemaining;
-            //for(graph)
-            //    ;
-            //
-        }*/
-        // return new MultiDirectedGraph()
     }
 
 
