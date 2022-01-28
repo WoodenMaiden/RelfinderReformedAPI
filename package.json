@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
     "build": "rm -rf dist/* ; npm run prebuild && tsc",
-    "dev:start": "npm-run-all build -s start",
+    "dev:start": "kill $(lsof -i:$(grep 'RFR_PORT=' .env | cut -d= -f2) -t); npm-run-all build -s start",
     "dev": "nodemon --watch src -e ts,js,ejs --exec npm run dev:start",
     "start": "node ."
   },
@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/sparql-http-client": "^2.2.8",
+    "cors": "^2.8.5",
     "dotenv": "^14.2.0",
     "express": "^4.17.2",
     "graphology": "^0.23.2",
