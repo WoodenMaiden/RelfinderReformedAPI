@@ -62,13 +62,10 @@ class RDFGraph {
     }
 
     depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string, depth: number = 5): MultiDirectedGraph {
-        if (!RDFGraph.nodeExists(baseGraph, startNode) || depth <= 0) return new MultiDirectedGraph();
+        if (!RDFGraph.nodeExists(baseGraph, startNode) || depth <= 0) return null;
+        if (baseGraph.outNeighbors(startNode) === []) return null;
         const depthed = new MultiDirectedGraph();
         depthed.addNode(startNode) // equivalent of tagging
-
-        // --depth;
-
-        if (baseGraph.outNeighbors(startNode) === []) return depthed
 
         // 👇 forloop to put in depthFirstSearchRec()
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
