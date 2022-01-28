@@ -1,5 +1,6 @@
 import { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
+import { stringify } from "querystring";
 
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
@@ -65,12 +66,15 @@ class RDFGraph {
         const depthed = new MultiDirectedGraph();
         depthed.addNode(startNode) // equivalent of tagging
 
+        --depth;
 
         // 👇 forloop to put in depthFirstSearchRec()
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
             if (!RDFGraph.nodeExists(depthed, neighbor)){
-                depthed.addNode(neighbor, attributes)
-                // TODO add a EdgeExists to add an edge between the starting point and the neighboors
+                depthed.addNode(neighbor, attributes);
+                baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any) => {
+                    if (!RDFGraph.edgeExists(depthed, edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
+                });
                 this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
             }
         })
