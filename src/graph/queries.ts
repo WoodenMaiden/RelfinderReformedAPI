@@ -29,6 +29,16 @@ abstract class Queries /*implements QueryObject*/ {
 }`
     };
 
+    static getGraphFromEntity(entity: string): string {
+        return `${this.prefixes()}
+SELECT DISTINCT ?graph
+WHERE {
+ GRAPH ?graph {
+   <${entity}> ?p ?o.
+ }
+}`
+    }
+
     private static generateNamespacesRegex(strings: string[]): string {
         const toreturn: string[] = strings
         for (let i: number = 0; i < toreturn.length; ++i)
