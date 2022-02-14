@@ -1,6 +1,8 @@
 interface QueryOptions {
     excludedClasses: string[],
-    excludedNamespaces : string[],
+    includedClasses: string[],
+    excludedNamespaces: string[],
+    includedNamespaces: string[],
     graphs: string[],
 }
 
@@ -11,15 +13,21 @@ abstract class Queries /*implements QueryObject*/ {
     static prefixes(): string {return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>PREFIX obo:<http://purl.obolibrary.org/obo/>PREFIX vocab:<vocabulary/>`};
 
     static getAll(opt: QueryOptions = {
-            excludedClasses : process.env.EXCLUDED_CLASSES.split(' '),
-            graphs : [],
-            excludedNamespaces : process.env.EXCLUDED_NAMESPACES.split(' ')
+        excludedClasses : process.env.EXCLUDED_CLASSES.split(' '),
+        includedClasses : process.env.INCLUDED_CLASSES.split(' '),
+        graphs : [],
+            excludedNamespaces : process.env.EXCLUDED_NAMESPACES.split(' '),
+            includedNamespaces : process.env.INCLUDED_NAMESPACES.split(' ')
         }): string {
+
         return `SELECT ?s ?p ?o ${(opt.graphs.length === 0) ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
-            ?s ?p ?o.
-            ${(opt.excludedClasses[0] === '' )? "": `FILTER (fn:not(?p = <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> && ?o IN (<${opt.excludedClasses.join(">, <")}>)))`}
-            ${(opt.excludedNamespaces[0] === '' ) ? "": `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(opt.excludedNamespaces)}'))`}
-        }`};
+    ?s ?p ?o.
+    ${(opt.excludedClasses[0] === '')? "": `FILTER (?s NOT IN (<${opt.excludedClasses.join("> <")}>))`}
+    ${(opt.includedClasses[0] === '')? "": `FILTER (?s IN (<${opt.includedClasses.join("> <")}>))`}
+    ${(opt.excludedNamespaces[0] === '' ) ? "": `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(opt.excludedNamespaces)}'))`}
+    ${(opt.includedNamespaces[0] === '' ) ? "": `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(opt.includedNamespaces)}'))`}
+}`
+    };
 
     private static generateNamespacesRegex(strings: string[]): string {
         const toreturn: string[] = strings
