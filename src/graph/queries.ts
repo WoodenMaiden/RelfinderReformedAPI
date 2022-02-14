@@ -17,7 +17,7 @@ abstract class Queries /*implements QueryObject*/ {
         }): string {
         return `SELECT ?s ?p ?o ${(opt.graphs.length === 0) ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
             ?s ?p ?o.
-            ${(opt.excludedClasses[0] === '')? "": `FILTER (?s NOT IN (<${opt.excludedClasses.join("> <")}>))`}
+            ${(opt.excludedClasses[0] === '' )? "": `FILTER (fn:not(?p = <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> && ?o IN (<${opt.excludedClasses.join(">, <")}>)))`}
             ${(opt.excludedNamespaces[0] === '' ) ? "": `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(opt.excludedNamespaces)}'))`}
         }`};
 
