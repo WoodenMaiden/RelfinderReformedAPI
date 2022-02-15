@@ -4,6 +4,8 @@ interface QueryOptions {
     excludedNamespaces: string[],
     includedNamespaces: string[],
     graphs: string[],
+    offset: number,
+    limit: number
 }
 
 abstract class Queries /*implements QueryObject*/ {
@@ -17,16 +19,18 @@ abstract class Queries /*implements QueryObject*/ {
             includedClasses : process.env.INCLUDED_CLASSES.split(' '),
             graphs : process.env.INCLUDED_GRAPHS.split(' '),
             excludedNamespaces : process.env.EXCLUDED_NAMESPACES.split(' '),
-            includedNamespaces : process.env.INCLUDED_NAMESPACES.split(' ')
+            includedNamespaces : process.env.INCLUDED_NAMESPACES.split(' '),
+            offset: 0,
+            limit: 10000
         }): string {
 
-        return `SELECT ?s ?p ?o ${(opt.graphs[0] === '') ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
+        return `SELECT distinct ?s ?p ?o ${(opt.graphs[0] === '') ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
     ?s ?p ?o.
     ${(opt.excludedClasses[0] === '')? "": `FILTER (?s NOT IN (<${opt.excludedClasses.join("> <")}>))`}
     ${(opt.includedClasses[0] === '')? "": `FILTER (?s IN (<${opt.includedClasses.join("> <")}>))`}
     ${(opt.excludedNamespaces[0] === '' ) ? "": `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(opt.excludedNamespaces)}'))`}
     ${(opt.includedNamespaces[0] === '' ) ? "": `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(opt.includedNamespaces)}'))`}
-}`
+} offset ${opt.offset} limit ${opt.limit}`
     };
 
     static getGraphFromEntity(entity: string): string {
