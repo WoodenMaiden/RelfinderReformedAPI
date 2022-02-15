@@ -1,9 +1,14 @@
-import { MultiDirectedGraph } from "graphology";
+import Graph, { MultiDirectedGraph } from "graphology";
+import "@types/sparql-http-client";
 import { Attributes } from "graphology-types";
-import { stringify } from "querystring";
 
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
+
+interface GraphResults {
+    type: string,
+    value: string
+}
 
 class RDFGraph {
 
@@ -11,36 +16,76 @@ class RDFGraph {
     graph: /*Graph*/ any;
     invertedGraph: /*Graph*/ any;
 
-    async init(): Promise<void> {
-        const constructedGraph = new MultiDirectedGraph()
-        const graphToInvert = new MultiDirectedGraph()
+    includedGraphs: string[];
 
-        try {
-            const fetchedGraph: Record<string, Record<string, string>>[] = await sparqlclient.query.select(queries.getAll(),{operation: 'get'})
-            for (const tuple of fetchedGraph ) {
-                if(!("s" in tuple) || !("p" in tuple) || !("o" in tuple) ) continue;
+    // MAJOR REFACTORING IN PROGRESS : We will only fetch concerned graphs
 
-                if (!constructedGraph.hasNode(tuple.s.value)) constructedGraph.addNode(tuple.s.value)
-                if (!constructedGraph.hasNode(tuple.o.value)) constructedGraph.addNode(tuple.o.value)
-                constructedGraph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+//    init(): Promise<void> {
+//        const constructedGraph = new MultiDirectedGraph()
+//        const graphToInvert = new MultiDirectedGraph()
+//
+//        try {
+//
+//        }
+//        catch (e) {
+//            console.log(e)
+//        }
+//        finally {
+//            this.graph = constructedGraph
+//            this.invertedGraph = graphToInvert
+//            console.log('\x1b[94m%s\x1b[0m', `graph edges = ${constructedGraph.size}, graph nodes = ${constructedGraph.order}`)
+//            console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${graphToInvert.size}, graph nodes = ${graphToInvert.order}`)
+//        }
+//
+//    }
+
+    private constructor(graphsToInclude: string[]) {
+        this.includedGraphs = graphsToInclude
+    }
+
+    /**
+     * @description get triples from one graph
+     * @param graph
+     * @private
+     */
+    private static getFromGraph(graph: string): Promise<Record<string, Record<string, string>>> {
+        // TODO
+        // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
+        return ;
+    }
+
+    public static createFromTwoEntities(...inputEntities: string[])/*: Promise<RDFGraph> */{
+
+        // Promises to get graphs from args
+        // const graphsPromises: Promise<Record<string, Record<string, string>>>[] = []
+        const graphsPromises: Promise<GraphResults[]>[] = []
+        inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
+
+        Promise.all(graphsPromises).then(promised => {
+            const graphs: string[] = []
+            promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
+            graphs.sort()
+
+
+            // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
+            if (graphs.length < 1) return /*new RDFGraph()*/ ;
+            else if (graphs.length > 1)
+            {
+                // tslint:disable-next-line:prefer-for-of
+                for (let index: number = 0; index < graphs.length; ++index) {
+                    if (index === 0 && (graphs[index] === graphs[index + 1]))
+                        /*TODO */;
+                }
             }
-
-            constructedGraph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
-                if (!graphToInvert.hasNode(source)) graphToInvert.addNode(source)
-                if (!graphToInvert.hasNode(target)) graphToInvert.addNode(target)
-                graphToInvert.addDirectedEdgeWithKey(edge, target, source, attributes)
-            })
-        }
-        catch (e) {
-            console.log(e)
-        }
-        finally {
-            this.graph = constructedGraph
-            this.invertedGraph = graphToInvert
-            console.log('\x1b[94m%s\x1b[0m', `graph edges = ${constructedGraph.size}, graph nodes = ${constructedGraph.order}`)
-            console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${graphToInvert.size}, graph nodes = ${graphToInvert.order}`)
-        }
-
+        })
+//        return Promise.all(promises).then((resolve, reject) => {
+//            resolve(new RDFGraph());
+//        })
+//            const toReturn = new RDFGraph(graphsToInclude)
+//            toReturn.init().then(() => {
+                // TODO
+//                resolve(toReturn)
+//            }).catch(() => reject(toReturn))
     }
 
     static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
@@ -127,14 +172,6 @@ class RDFGraph {
 */
 }
 
-const graph = new RDFGraph()
 
-try {
-    graph.init()
-}
-catch(e) {
-    console.log(e)
-}
-finally {
-    exports = module.exports = graph
-}
+
+exports = module.exports = RDFGraph
