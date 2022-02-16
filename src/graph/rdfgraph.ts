@@ -24,12 +24,29 @@ interface TriplesResults {
 class RDFGraph {
 
     static queries: Queries = queries;
-    graph: /*Graph*/ any;
-    invertedGraph: /*Graph*/ any;
+    private _graph: MultiDirectedGraph;
+    private _invertedGraph: MultiDirectedGraph;
 
     includedGraphs: string[];
 
-    // MAJOR REFACTORING IN PROGRESS : We will only fetch concerned graphs
+
+    get graph(): any {
+        return this._graph;
+    }
+
+    set graph(value: any) {
+        this._graph = value;
+    }
+
+    get invertedGraph(): any {
+        return this._invertedGraph;
+    }
+
+    set invertedGraph(value: any) {
+        this._invertedGraph = value;
+    }
+
+// MAJOR REFACTORING IN PROGRESS : We will only fetch concerned graphs
 
 //    init(): Promise<void> {
 //        const constructedGraph = new MultiDirectedGraph()
@@ -98,27 +115,22 @@ class RDFGraph {
                 }
 
                 Promise.all(promises).then((returnedTriples) => {
-                    const triples: TriplesResults[][] = []
-                    returnedTriples.forEach((dt) => triples.push(dt))
+                    const triples: TriplesResults[] = []
+                    returnedTriples.forEach((dt) => triples.concat(dt))
 
                     const toResolve = new RDFGraph([])
 
-//                    const constructedGraph = new MultiDirectedGraph()
-//                    const graphToInvert = new MultiDirectedGraph()
+                    toResolve.graph(new MultiDirectedGraph())
+                    toResolve.invertedGraph(new MultiDirectedGraph())
 
+                    // for (const tuple of )
+// console.log('\x1b[94m%s\x1b[0m', `graph edges = ${constructedGraph.size}, graph nodes = ${constructedGraph.order}`)
+// console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${graphToInvert.size}, graph nodes = ${graphToInvert.order}`)
                 }).catch(() => reject())
                 // Promise.all<Graph>()
             });
 
         })
-//        return Promise.all(promises).then((resolve, reject) => {
-//            resolve(new RDFGraph());
-//        })
-//            const toReturn = new RDFGraph(graphsToInclude)
-//            toReturn.init().then(() => {
-                // TODO
-//                resolve(toReturn)
-//            }).catch(() => reject(toReturn))
     }
 
     static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
