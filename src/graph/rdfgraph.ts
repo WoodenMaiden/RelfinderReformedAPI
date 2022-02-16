@@ -57,25 +57,28 @@ class RDFGraph {
     public static createFromTwoEntities(...inputEntities: string[])/*: Promise<RDFGraph> */{
 
         // Promises to get graphs from args
-        // const graphsPromises: Promise<Record<string, Record<string, string>>>[] = []
         const graphsPromises: Promise<GraphResults[]>[] = []
         inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
 
         Promise.all(graphsPromises).then(promised => {
-            const graphs: string[] = []
+            let graphs: string[] = []
+            const tmp: string[] = []
             promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
-            graphs.sort()
 
 
             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
             if (graphs.length < 1) return /*new RDFGraph()*/ ;
             else if (graphs.length > 1)
             {
-                // tslint:disable-next-line:prefer-for-of
-                for (let index: number = 0; index < graphs.length; ++index) {
-                    if (index === 0 && (graphs[index] === graphs[index + 1]))
-                        /*TODO */;
+                for (const item of Object.keys(new Set<string>(graphs))) { // the set is here to get rid of duplicates
+                    const firstIndex =  graphs.indexOf(item)
+                    if (firstIndex === graphs.length - 1 ) continue; // if the first occurrence is the last one of course there is nothing else
+
+                    const secondIndex = graphs.indexOf(item, firstIndex)
+                    if (secondIndex !== -1 ) tmp.push(item);
                 }
+
+                graphs = tmp
             }
         })
 //        return Promise.all(promises).then((resolve, reject) => {
