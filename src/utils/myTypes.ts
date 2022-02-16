@@ -13,6 +13,7 @@ interface GraphResults {
     value: string
 }
 
+// TODO fix this
 exports = module.exports = {
     QueryOptions,
     GraphResults
