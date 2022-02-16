@@ -50,15 +50,8 @@ WHERE {
         return toreturn.join('|')
     }
 
-    static getAllObjectOf(): string {return `SELECT ?p ?o {!subject! ?p ?o.}`};
+    static getAllObjectOf(subject: string): string {return `SELECT ?p ?o {${subject} ?p ?o.}`};
 
-    static fillQuery (replace: Record<string, string>, query: string): string {
-        let str: string = query
-        for (const [key, value] of Object.entries(replace)) {
-            str = str.replace(`!${key}!`, value)
-        }
-        return str
-    };
 }
 
 exports = module.exports = Queries
