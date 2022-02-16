@@ -10,6 +10,17 @@ interface GraphResults {
     value: string
 }
 
+interface EntityResults {
+    type: string,
+    value: string|number|null
+}
+
+interface TriplesResults {
+    s: EntityResults,
+    p: EntityResults,
+    o: EntityResults
+}
+
 class RDFGraph {
 
     static queries: Queries = queries;
@@ -48,13 +59,13 @@ class RDFGraph {
      * @param graph
      * @private
      */
-    private static getFromGraph(graph: string): Promise<Record<string, Record<string, string>>> {
+    private static getFromGraph(graph: string): Promise<TriplesResults[]> {
         // TODO
         // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
         return ;
     }
 
-    public static createFromTwoEntities(...inputEntities: string[])/*: Promise<RDFGraph> */{
+    public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph|void>{
 
         // Promises to get graphs from args
         const graphsPromises: Promise<GraphResults[]>[] = []
@@ -65,9 +76,8 @@ class RDFGraph {
             const tmp: string[] = []
             promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
 
-
             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
-            if (graphs.length < 1) return /*new RDFGraph()*/ ;
+            if (graphs.length < 1) return new Promise((resolve, reject) => reject());
             else if (graphs.length > 1)
             {
                 for (const item of Object.keys(new Set<string>(graphs))) { // the set is here to get rid of duplicates
@@ -80,6 +90,26 @@ class RDFGraph {
 
                 graphs = tmp
             }
+
+            return new Promise<RDFGraph>((resolve, reject) => {
+                const promises: Promise<TriplesResults[]>[] = []
+                for (const g of graphs) {
+                    promises.push(this.getFromGraph(g))
+                }
+
+                Promise.all(promises).then((returnedTriples) => {
+                    const triples: TriplesResults[][] = []
+                    returnedTriples.forEach((dt) => triples.push(dt))
+
+                    const toResolve = new RDFGraph([])
+
+//                    const constructedGraph = new MultiDirectedGraph()
+//                    const graphToInvert = new MultiDirectedGraph()
+
+                }).catch(() => reject())
+                // Promise.all<Graph>()
+            });
+
         })
 //        return Promise.all(promises).then((resolve, reject) => {
 //            resolve(new RDFGraph());
