@@ -5,20 +5,20 @@ import { Attributes } from "graphology-types";
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
 
-interface GraphResults {
+interface GraphResult {
     type: string,
     value: string
 }
 
-interface EntityResults {
+interface EntityResult {
     type: string,
     value: string|number|null
 }
 
-interface TriplesResults {
-    s: EntityResults,
-    p: EntityResults,
-    o: EntityResults
+interface TripleResult {
+    s: EntityResult,
+    p: EntityResult,
+    o: EntityResult
 }
 
 class RDFGraph {
@@ -76,25 +76,25 @@ class RDFGraph {
      * @param graph
      * @private
      */
-    private static getFromGraph(graph: string): Promise<TriplesResults[]> {
+    private static getFromGraph(graph: string): Promise<TripleResult[]> {
         // TODO
         // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
         return ;
     }
 
-    public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph|void>{
+    public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph>{
 
         // Promises to get graphs from args
         const graphsPromises: Promise<GraphResults[]>[] = []
         inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
 
-        Promise.all(graphsPromises).then(promised => {
+        return Promise.all(graphsPromises).then(promised => {
             let graphs: string[] = []
             const tmp: string[] = []
             promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
 
             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
-            if (graphs.length < 1) return new Promise((resolve, reject) => reject());
+            if (graphs.length < 1) return new Promise((resolve, reject) => reject(new RDFGraph([])));
             else if (graphs.length > 1)
             {
                 for (const item of Object.keys(new Set<string>(graphs))) { // the set is here to get rid of duplicates
@@ -109,13 +109,13 @@ class RDFGraph {
             }
 
             return new Promise<RDFGraph>((resolve, reject) => {
-                const promises: Promise<TriplesResults[]>[] = []
+                const promises: Promise<TripleResult[]>[] = []
                 for (const g of graphs) {
                     promises.push(this.getFromGraph(g))
                 }
 
                 Promise.all(promises).then((returnedTriples) => {
-                    const triples: TriplesResults[] = []
+                    const triples: TripleResult[] = []
                     returnedTriples.forEach((dt) => triples.concat(dt))
 
                     const toResolve = new RDFGraph([])
@@ -123,11 +123,21 @@ class RDFGraph {
                     toResolve.graph(new MultiDirectedGraph())
                     toResolve.invertedGraph(new MultiDirectedGraph())
 
-                    // for (const tuple of )
-// console.log('\x1b[94m%s\x1b[0m', `graph edges = ${constructedGraph.size}, graph nodes = ${constructedGraph.order}`)
-// console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${graphToInvert.size}, graph nodes = ${graphToInvert.order}`)
+                    for (const tuple of triples) {
+                        if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
+                        if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
+                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+
+                        toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
+                            if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
+                            if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
+                            toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
+                        })
+                    }
+                    console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
+                    console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
+                    resolve(toResolve)
                 }).catch(() => reject())
-                // Promise.all<Graph>()
             });
 
         })
