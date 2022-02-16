@@ -21,6 +21,10 @@ interface TripleResult {
     o: EntityResult
 }
 
+interface CountResult {
+    counter: number
+}
+
 class RDFGraph {
 
     static queries: Queries = queries;
@@ -46,27 +50,6 @@ class RDFGraph {
         this._invertedGraph = value;
     }
 
-// MAJOR REFACTORING IN PROGRESS : We will only fetch concerned graphs
-
-//    init(): Promise<void> {
-//        const constructedGraph = new MultiDirectedGraph()
-//        const graphToInvert = new MultiDirectedGraph()
-//
-//        try {
-//
-//        }
-//        catch (e) {
-//            console.log(e)
-//        }
-//        finally {
-//            this.graph = constructedGraph
-//            this.invertedGraph = graphToInvert
-//            console.log('\x1b[94m%s\x1b[0m', `graph edges = ${constructedGraph.size}, graph nodes = ${constructedGraph.order}`)
-//            console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${graphToInvert.size}, graph nodes = ${graphToInvert.order}`)
-//        }
-//
-//    }
-
     private constructor(graphsToInclude: string[]) {
         this.includedGraphs = graphsToInclude
     }
@@ -79,9 +62,18 @@ class RDFGraph {
     private static getFromGraph(graph: string): Promise<TripleResult[]> {
         // TODO
         // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
+        return new Promise<TripleResult[]> ((resolve, reject) => {
+            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then(() => {
+                // todo;
+            });
+        });
+    }
+
+    private static getFromGraphRec(graph: string,): Promise<TripleResult[]> {
         return ;
     }
 
+    // TODO : test
     public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph>{
 
         // Promises to get graphs from args
