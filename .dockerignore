@@ -4,3 +4,7 @@ dotenvexample.env
 .gitignore
 README.md
 cloned_repos
+dist
+tsconfig.json
+tslint.json
+tests
