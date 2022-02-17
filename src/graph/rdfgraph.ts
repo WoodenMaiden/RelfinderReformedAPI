@@ -1,26 +1,11 @@
 import Graph, { MultiDirectedGraph } from "graphology";
-import "@types/sparql-http-client";
+import "sparql-http-client";
 import { Attributes } from "graphology-types";
-import {QueryOptions} from "sparql-http-client";
+
+import * as RFR from "RFR";
 
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
-
-interface GraphResult {
-    type: string,
-    value: string
-}
-
-interface EntityResult {
-    type: string,
-    value: string|number|null
-}
-
-interface TripleResult {
-    s: EntityResult,
-    p: EntityResult,
-    o: EntityResult
-}
 
 interface CountResult {
     value: number
@@ -28,7 +13,7 @@ interface CountResult {
 
 class RDFGraph {
 
-    static queries: Queries = queries;
+    static queries: typeof queries = queries;
     private _graph: MultiDirectedGraph;
     private _invertedGraph: MultiDirectedGraph;
 
@@ -58,19 +43,20 @@ class RDFGraph {
     /**
      * @description get triples from one graph
      * @param graph
+     * @param limitQuery
      * @private
      */
-    private static getFromGraph(graph: string, limitQuery: number): Promise<TripleResult[]> {
+    private static getFromGraph(graph: string, limitQuery: number): Promise<RFR.TripleResult[]> {
         // TODO
         // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
-        return new Promise<TripleResult[]> ((resolve, reject) => {
+        return new Promise<RFR.TripleResult[]> ((resolve, reject) => {
             sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: CountResult[]) => {
                 // todo;
                 if (count[0].value < 1) reject([]);
-                const toResolve: TripleResult[] = []
+                const toResolve: RFR.TripleResult[] = []
 
                 let offsetQuery: number = 0;
-                const promises: Promise<TripleResult[]> [] = []
+                const promises: Promise<RFR.TripleResult[]> [] = []
 
                 do {
                     promises.push(sparqlclient.query.select(queries.getAll({offset: offsetQuery, limit: limitQuery})))
@@ -92,7 +78,7 @@ class RDFGraph {
     public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph>{
 
         // Promises to get graphs from args
-        const graphsPromises: Promise<GraphResults[]>[] = []
+        const graphsPromises: Promise<RFR.GraphResults[]>[] = []
         inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
 
         return Promise.all(graphsPromises).then(promised => {
@@ -116,13 +102,13 @@ class RDFGraph {
             }
 
             return new Promise<RDFGraph>((resolve, reject) => {
-                const promises: Promise<TripleResult[]>[] = []
+                const promises: Promise<RFR.TripleResult[]>[] = []
                 for (const g of graphs) {
                     promises.push(this.getFromGraph(g, 10000))
                 }
 
                 Promise.all(promises).then((returnedTriples) => {
-                    const triples: TripleResult[] = []
+                    const triples: RFR.TripleResult[] = []
                     returnedTriples.forEach((dt) => triples.concat(dt))
 
                     const toResolve = new RDFGraph([])
