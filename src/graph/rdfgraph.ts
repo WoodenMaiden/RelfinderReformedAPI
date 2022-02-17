@@ -1,6 +1,7 @@
 import Graph, { MultiDirectedGraph } from "graphology";
 import "@types/sparql-http-client";
 import { Attributes } from "graphology-types";
+import {QueryOptions} from "sparql-http-client";
 
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
@@ -22,7 +23,7 @@ interface TripleResult {
 }
 
 interface CountResult {
-    counter: number
+    value: number
 }
 
 class RDFGraph {
@@ -59,18 +60,32 @@ class RDFGraph {
      * @param graph
      * @private
      */
-    private static getFromGraph(graph: string): Promise<TripleResult[]> {
+    private static getFromGraph(graph: string, limitQuery: number): Promise<TripleResult[]> {
         // TODO
         // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
         return new Promise<TripleResult[]> ((resolve, reject) => {
-            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then(() => {
+            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: CountResult[]) => {
                 // todo;
-            });
-        });
-    }
+                if (count[0].value < 1) reject([]);
+                const toResolve: TripleResult[] = []
 
-    private static getFromGraphRec(graph: string,): Promise<TripleResult[]> {
-        return ;
+                let offsetQuery: number = 0;
+                const promises: Promise<TripleResult[]> [] = []
+
+                do {
+                    promises.push(sparqlclient.query.select(queries.getAll({offset: offsetQuery, limit: limitQuery})))
+                    offsetQuery += limitQuery
+                } while (offsetQuery + limitQuery < count[0].value);
+
+                Promise.all(promises).then((promisesArray) => {
+                    for (const c of promisesArray)
+                        toResolve.concat(c);
+                    resolve(toResolve)
+                }).catch(() => reject([]));
+
+
+            }).catch(() => reject([]));
+        });
     }
 
     // TODO : test
@@ -103,7 +118,7 @@ class RDFGraph {
             return new Promise<RDFGraph>((resolve, reject) => {
                 const promises: Promise<TripleResult[]>[] = []
                 for (const g of graphs) {
-                    promises.push(this.getFromGraph(g))
+                    promises.push(this.getFromGraph(g, 10000))
                 }
 
                 Promise.all(promises).then((returnedTriples) => {
