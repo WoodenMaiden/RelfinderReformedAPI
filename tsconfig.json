@@ -15,10 +15,11 @@
         }, 
         "types": [
             "graphology",
-            "sparql-http-client"
+            "sparql-http-client",
         ]
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "typings/**/*"
     ]
 }
