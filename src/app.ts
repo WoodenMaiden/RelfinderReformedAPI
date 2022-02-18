@@ -12,11 +12,12 @@ const cors = require('cors');
 const jsonparse = bodyParser.json()
 const app = express()
 const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
+const STARTDATE = new Date()
 
 app.use(cors({origin: '*'}));
 
-app.get("/info", (req: any, res: any) => {
-    res.status(200).send({message: "OK!", APIVersion: "1.0.0test"});
+app.get(/^\/(?:info)?$/, (req: any, res: any) => {
+    res.status(200).send({message: "OK!", APIVersion: "1.0.0test", nodeVersion: process.version, uptime: process.uptime(), startDate: STARTDATE});
 })
 
 app.get("/nodes", async (req: any, res: any) => {
