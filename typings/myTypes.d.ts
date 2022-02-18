@@ -24,5 +24,9 @@ declare module "RFR" {
      p: EntityResult,
      o: EntityResult
 	}
-	// TODO fix this
+
+	interface CountResult {
+		value: number
+	}
+
 }

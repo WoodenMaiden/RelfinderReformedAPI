@@ -7,9 +7,6 @@ import * as RFR from "RFR";
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
 
-interface CountResult {
-    value: number
-}
 
 class RDFGraph {
 
@@ -47,11 +44,8 @@ class RDFGraph {
      * @private
      */
     private static getFromGraph(graph: string, limitQuery: number): Promise<RFR.TripleResult[]> {
-        // TODO
-        // sparqlclient.query.select(queries.getAll(), {operation: 'get'})
         return new Promise<RFR.TripleResult[]> ((resolve, reject) => {
-            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: CountResult[]) => {
-                // todo;
+            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: RFR.CountResult[]) => {
                 if (count[0].value < 1) reject([]);
                 const toResolve: RFR.TripleResult[] = []
 
@@ -74,7 +68,6 @@ class RDFGraph {
         });
     }
 
-    // TODO : test
     public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph>{
 
         // Promises to get graphs from args
