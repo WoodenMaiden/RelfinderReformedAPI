@@ -1,6 +1,6 @@
 {
   "name": "relfinderreformed",
-  "version": "1.0.0",
+  "version": "1.0.0beta",
   "description": "",
   "main": "./dist/app.js",
   "scripts": {
@@ -10,6 +10,12 @@
     "dev": "npx nodemon --watch src -e ts,js,ejs --exec npm run dev:start",
     "start": "node ."
   },
+  "keywords": [
+    "API",
+    "RDF",
+    "Relfinder",
+    "Graphs"
+  ],
   "author": "Yann POMIE",
   "license": "ISC",
   "dependencies": {
@@ -18,7 +24,9 @@
     "express": "^4.17.2",
     "graphology": "^0.23.2",
     "npm-run-all": "^4.1.5",
-    "sparql-http-client": "^2.4.0"
+    "sparql-http-client": "^2.4.0",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.3.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.12",
