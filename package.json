@@ -19,6 +19,7 @@
   "author": "Yann POMIE",
   "license": "ISC",
   "dependencies": {
+    "@types/express": "^4.17.13",
     "cors": "^2.8.5",
     "dotenv": "^14.2.0",
     "express": "^4.17.2",
