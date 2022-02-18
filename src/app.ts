@@ -1,4 +1,5 @@
 import { Readable } from "stream";
+import * as RFR from "RFR";
 
 require('dotenv').config();
 const express = require('express')
@@ -20,15 +21,11 @@ app.get(/^\/(?:info)?$/, (req: any, res: any) => {
     res.status(200).send({message: "OK!", APIVersion: "1.0.0test", nodeVersion: process.version, uptime: process.uptime(), startDate: STARTDATE});
 })
 
-app.get("/nodes", async (req: any, res: any) => {
-
-    try {
-        const stream: Readable = await sparqlclient.query.select(queries.getAll(), {operation: 'get'})
-        res.status(200).send(stream)
-    }
-    catch (e){
-        res.status(500).send(e)
-    }
+app.get("/graphs", jsonparse, (req: any, res: any) => {
+    if (!req.body.nodes || req.body.nodes.length < 1) res.status(404).send({message: "please read the /docs route to see how to use this route"})
+    else sparqlclient.query.select(queries.getGraphFromEntity(req.body.nodes[0])).then((data: RFR.GraphResults[] ) => {
+        res.status(200).send(data)
+    }).catch((err: any) => res.status(404).send(err))
 })
 
 app.get(/relfinder\/\w+\/\w+/, (req: any, res: any) => {
