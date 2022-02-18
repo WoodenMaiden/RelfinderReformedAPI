@@ -5,7 +5,7 @@ COPY ./ /web
 WORKDIR /web
 
 RUN npm i
-RUN npm build
+RUN npm run build
 
 RUN rm -rf src typings
 
