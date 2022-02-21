@@ -10,8 +10,7 @@ declare module "RFR" {
 	}
 
 	export interface GraphResults {
-	    type: string,
-	    value: string
+	    graph: NamedNode
 	}
 
 	interface TripleResult {
