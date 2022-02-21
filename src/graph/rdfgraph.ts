@@ -87,17 +87,21 @@ class RDFGraph {
         return Promise.all(graphsPromises).then(promised => {
             let graphs: string[] = []
             const tmp: string[] = []
-            promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
+
+            promised.forEach(elt /*: RFR.GraphResults[]*/ => {
+                elt.forEach(gElt /*: RFR.GraphResults*/ => {
+                    graphs.push(gElt.graph.value)
+                })
+            })
 
             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
             if (graphs.length < 1) return new Promise((resolve, reject) => {
-                console.log(graphs)
                 console.log('\x1b[31m%s\x1b[0m', 'not enough graphs')
                 reject(new RDFGraph([]))
             });
             else if (graphs.length > 1)
             {
-                for (const item of Object.keys(new Set<string>(graphs))) { // the set is here to get rid of duplicates
+                for (const item of new Set<string>(graphs)) { // the set is here to get rid of duplicates
                     const firstIndex =  graphs.indexOf(item)
                     if (firstIndex === graphs.length - 1 ) continue; // if the first occurrence is the last one of course there is nothing else
 
