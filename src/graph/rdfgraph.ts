@@ -1,5 +1,4 @@
 import Graph, { MultiDirectedGraph } from "graphology";
-import "sparql-http-client";
 import { Attributes } from "graphology-types";
 
 import * as RFR from "RFR";
@@ -46,8 +45,11 @@ class RDFGraph {
     private static getFromGraph(graph: string, limitQuery: number): Promise<RFR.TripleResult[]> {
         return new Promise<RFR.TripleResult[]> ((resolve, reject) => {
             sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: RFR.CountResult[]) => {
-                if (count[0].value < 1) reject([]);
-                const toResolve: RFR.TripleResult[] = []
+                if (count[0].counter.value < 1) {
+                    console.log('\x1b[31m%s\x1b[0m', 'No triples!')
+                    reject([]);
+                }
+                let toResolve: RFR.TripleResult[] = []
 
                 let offsetQuery: number = 0;
                 const promises: Promise<RFR.TripleResult[]> [] = []
@@ -55,11 +57,13 @@ class RDFGraph {
                 do {
                     promises.push(sparqlclient.query.select(queries.getAll({offset: offsetQuery, limit: limitQuery})))
                     offsetQuery += limitQuery
-                } while (offsetQuery + limitQuery < count[0].value);
+                } while (offsetQuery + limitQuery < count[0].counter.value);
 
                 Promise.all(promises).then((promisesArray) => {
-                    for (const c of promisesArray)
-                        toResolve.concat(c);
+                    for (const c of promisesArray){
+                        toResolve = toResolve.concat(c);
+                    }
+                    console.log('\x1b[32m%s\x1b[0m', 'Fetched nodes successfully')
                     resolve(toResolve)
                 }).catch((err) =>{
                     console.log('\x1b[31m%s\x1b[0m', err)
