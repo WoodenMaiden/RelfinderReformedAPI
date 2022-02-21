@@ -14,19 +14,24 @@ declare module "RFR" {
 	    value: string
 	}
 
-	interface EntityResult {
-     type: string,
-     value: string|number|null
-	}
-
 	interface TripleResult {
-     s: EntityResult,
-     p: EntityResult,
-     o: EntityResult
+     s: NamedNode,
+     p: NamedNode,
+     o: NamedNode
 	}
 
 	interface CountResult {
-		value: number
+		counter: Literal
 	}
 
+	// Types used by sparql client
+	interface Literal {
+		value: number,
+		datatype: NamedNode,
+		language: ''
+	}
+
+	interface NamedNode {
+		value: string
+	}
 }
