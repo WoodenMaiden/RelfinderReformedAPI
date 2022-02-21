@@ -78,7 +78,7 @@ class RDFGraph {
         });
     }
 
-    public static createFromTwoEntities(...inputEntities: string[]): Promise<RDFGraph>{
+    public static createFromTwoEntities(inputEntities: string[]): Promise<RDFGraph>{
 
         // Promises to get graphs from args
         const graphsPromises: Promise<RFR.GraphResults[]>[] = []
@@ -90,7 +90,11 @@ class RDFGraph {
             promised.forEach(elt => elt.forEach(gElt => graphs.push(gElt.value)))
 
             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
-            if (graphs.length < 1) return new Promise((resolve, reject) => reject(new RDFGraph([])));
+            if (graphs.length < 1) return new Promise((resolve, reject) => {
+                console.log(graphs)
+                console.log('\x1b[31m%s\x1b[0m', 'not enough graphs')
+                reject(new RDFGraph([]))
+            });
             else if (graphs.length > 1)
             {
                 for (const item of Object.keys(new Set<string>(graphs))) { // the set is here to get rid of duplicates
@@ -133,7 +137,10 @@ class RDFGraph {
                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
                     console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
                     resolve(toResolve)
-                }).catch(() => reject())
+                }).catch(() => {
+                    console.log('\x1b[31m%s\x1b[0m', `could not fetch graphs : ${graphs.join(' ')}`)
+                    reject()
+                })
             });
 
         })
