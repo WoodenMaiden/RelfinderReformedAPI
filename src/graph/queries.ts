@@ -19,6 +19,13 @@ abstract class Queries /*implements QueryObject*/ {
         offset: 0,
         limit: 10000
     }): string {
+        if (!opt.excludedClasses) opt.excludedClasses = process.env.EXCLUDED_CLASSES.split(' ');
+        if (!opt.includedClasses) opt.includedClasses = process.env.INCLUDED_CLASSES.split(' ');
+        if (!opt.graphs) opt.graphs = process.env.INCLUDED_GRAPHS.split(' ');
+        if (!opt.excludedNamespaces) opt.excludedNamespaces = process.env.EXCLUDED_NAMESPACES.split(' ')
+        if (!opt.includedNamespaces) opt.includedNamespaces = process.env.INCLUDED_NAMESPACES.split(' ')
+        if (!opt.offset === undefined || !opt.offset === null || opt.offset < 0 ) opt.offset = 0
+        if (!opt.limit === undefined || !opt.limit === null || opt.limit < 0 ) opt.limit = 10000
 
         return `SELECT distinct ?s ?p ?o ${(opt.graphs[0] === '') ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
     ?s ?p ?o.
@@ -50,7 +57,7 @@ WHERE {
         return `SELECT ?p ?o {${subject} ?p ?o.}`
     };
 
-    static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH ${graph} {?s ?p ?o.}}`}
+    static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
 }
 
 exports = module.exports = Queries
