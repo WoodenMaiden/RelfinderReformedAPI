@@ -32,14 +32,16 @@ app.get("/nodes", jsonparse, (req: any, res: any) => {
     if (!req.body.graph || !req.body.limit) res.status(404).send({message: "please read the /docs route to see how to use this route"})
     else {
         RDFGraph.getFromGraph(req.body.graph, req.body.limit).then((data: RFR.TripleResult[]) => {
-            // todo
             res.status(200).send(data)
         }).catch(() => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?"}))
     }
 })
 
-app.get(/relfinder\/\w+\/\w+/, (req: any, res: any) => {
-    res.status(200).send(RDFGraph.graph)
+app.get("/relfinder", jsonparse, (req: any, res: any) => {
+    if (!req.body.nodes || req.body.nodes.length < 2) res.status(404).send({message: "please read the /docs route to see how to use this route"})
+    RDFGraph.createFromTwoEntities(req.body.nodes).then((graph: typeof RDFGraph) => {
+        res.status(200).send(graph)
+    }).catch((err: any) => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err}))
 })
 
 app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
