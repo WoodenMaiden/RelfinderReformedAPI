@@ -28,6 +28,16 @@ app.get("/graphs", jsonparse, (req: any, res: any) => {
     }).catch((err: any) => res.status(404).send(err))
 })
 
+app.get("/nodes", jsonparse, (req: any, res: any) => {
+    if (!req.body.graph || !req.body.limit) res.status(404).send({message: "please read the /docs route to see how to use this route"})
+    else {
+        RDFGraph.getFromGraph(req.body.graph, req.body.limit).then((data: RFR.TripleResult[]) => {
+            // todo
+            res.status(200).send(data)
+        }).catch(() => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?"}))
+    }
+})
+
 app.get(/relfinder\/\w+\/\w+/, (req: any, res: any) => {
     res.status(200).send(RDFGraph.graph)
 })
