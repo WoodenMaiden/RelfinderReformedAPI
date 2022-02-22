@@ -56,9 +56,10 @@ class RDFGraph {
                 const promises: Promise<RFR.TripleResult[]> [] = []
 
                 do {
-                    promises.push(sparqlclient.query.select(queries.getAll({offset: offsetQuery, limit: limitQuery})))
+                    promises.push(sparqlclient.query.select(queries.getAll({graphs: [graph], offset: offsetQuery, limit: limitQuery})))
                     offsetQuery += limitQuery
                 } while (offsetQuery < count[0].counter.value);
+                console.log(promises)
 
                 Promise.all(promises).then((promisesArray) => {
                     for (const c of promisesArray){
