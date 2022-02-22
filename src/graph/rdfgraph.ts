@@ -49,6 +49,7 @@ class RDFGraph {
                     console.log('\x1b[31m%s\x1b[0m', 'No triples!')
                     reject([]);
                 }
+                console.log(count[0])
                 let toResolve: RFR.TripleResult[] = []
 
                 let offsetQuery: number = 0;
@@ -57,7 +58,7 @@ class RDFGraph {
                 do {
                     promises.push(sparqlclient.query.select(queries.getAll({offset: offsetQuery, limit: limitQuery})))
                     offsetQuery += limitQuery
-                } while (offsetQuery + limitQuery < count[0].counter.value);
+                } while (offsetQuery < count[0].counter.value);
 
                 Promise.all(promises).then((promisesArray) => {
                     for (const c of promisesArray){
