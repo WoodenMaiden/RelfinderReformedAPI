@@ -117,6 +117,8 @@ class RDFGraph {
             return new Promise<RDFGraph>((resolve, reject) => {
                 const promises: Promise<RFR.TripleResult[]>[] = []
                 for (const g of graphs) {
+                    console.log('\x1b[31m%s\x1b[0m' ,"Change getFromGraph() to not nuke the endpoint!");
+                    throw new Error("Change getFromGraph() to not nuke the endpoint!");
                     promises.push(this.getFromGraph(g, 10000))
                 }
 

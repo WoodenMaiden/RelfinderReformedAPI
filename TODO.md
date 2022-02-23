@@ -10,5 +10,7 @@
 # Misc
 - [ ] Try to not nuke the endpoint by getting triples
 
-# Considerations
-- Maybe load relations of input entities recursively, up to a certain depth
+## Ideas:
+- Maybe load relations of input entities recursively, up to a certain depth and join them
+- Try to take the smallest number of graphs possible and the smallest in terms of sizes
+-   
