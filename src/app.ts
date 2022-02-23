@@ -54,4 +54,13 @@ app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
 
 app.listen(PORT, () => {
     console.log('\x1b[32m%s\x1b[0m' ,`Server started at port ${PORT}`);
+    console.log('\x1b[33m%s\x1b[0m' ,`Sending query to check endpoint's status...`);
+
+    sparqlclient.query.select(queries.getAll({offset: 0, limit:1})). then(() => {
+        console.log('\x1b[32m%s\x1b[0m' ,`Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
+    }).catch((err: string) => {
+        console.log('\x1b[31m%s\x1b[0m' ,`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
+        console.log(err)
+        process.exit(1)
+    });
 })
