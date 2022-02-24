@@ -10,15 +10,7 @@ abstract class Queries /*implements QueryObject*/ {
         return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>PREFIX obo:<http://purl.obolibrary.org/obo/>PREFIX vocab:<vocabulary/>`
     };
 
-    static getAll(opt: QueryOptions = {
-        excludedClasses: process.env.EXCLUDED_CLASSES.split(' '),
-        includedClasses: process.env.INCLUDED_CLASSES.split(' '),
-        graphs: process.env.INCLUDED_GRAPHS.split(' '),
-        excludedNamespaces: process.env.EXCLUDED_NAMESPACES.split(' '),
-        includedNamespaces: process.env.INCLUDED_NAMESPACES.split(' '),
-        offset: 0,
-        limit: 10000
-    }): string {
+    static getAll(opt: QueryOptions): string {
         if (!opt.excludedClasses) opt.excludedClasses = process.env.EXCLUDED_CLASSES.split(' ');
         if (!opt.includedClasses) opt.includedClasses = process.env.INCLUDED_CLASSES.split(' ');
         if (!opt.graphs) opt.graphs = process.env.INCLUDED_GRAPHS.split(' ');
@@ -53,8 +45,11 @@ WHERE {
         return toreturn.join('|')
     }
 
-    static getObjectsOf(subject: string): string {
-        return `SELECT ?p ?o {${subject} ?p ?o.}`
+    static getObjectsOf(subject: string/*, opt: QueryOptions*/): string {
+        return `SELECT ?s ?p ?o WHERE {
+        ?s ?p ?o.
+        FILTER (?s = <${subject}>)
+}`
     };
 
     static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
