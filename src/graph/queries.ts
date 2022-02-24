@@ -53,7 +53,7 @@ WHERE {
         return toreturn.join('|')
     }
 
-    static getAllObjectOf(subject: string): string {
+    static getObjectsOf(subject: string): string {
         return `SELECT ?p ?o {${subject} ?p ?o.}`
     };
 
