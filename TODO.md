@@ -8,5 +8,5 @@
 - [ ] Logging System
 
 ## Ideas:
-- Maybe load relations of input entities recursively, up to a certain depth and join them
-- Try to take the smallest number of graphs possible and the smallest in terms of sizes
+- :heavy_check_mark: Maybe load relations of input entities recursively, up to a certain depth and join them
+- ~~Try to take the smallest number of graphs possible and the smallest in terms of sizes~~
