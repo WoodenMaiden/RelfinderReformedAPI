@@ -80,78 +80,109 @@ class RDFGraph {
         });
     }
 
-    public static createFromTwoEntities(inputEntities: string[]): Promise<RDFGraph>{
+    private static createFromEntitiesRec(inputEntity: string, depth: number, triples: RFR.TripleResult[]): Promise<RFR.TripleResult[]> {
+        return new Promise<RFR.TripleResult[]>((resolve, reject) => {
+            // TODO
+            resolve([])
+        })
+    }
 
-        // Promises to get graphs from args
-        const graphsPromises: Promise<RFR.GraphResults[]>[] = []
-        inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
+    public static createFromEntities(inputEntities: string[], depth: number): Promise<RDFGraph>{
+        // REFACTORING IN PROGRESS
 
-        return Promise.all(graphsPromises).then(promised => {
-            let graphs: string[] = []
-            const tmp: string[] = []
+        return new Promise<RDFGraph>((resolve, reject) => {
+            if (inputEntities.length < 2) reject(new RDFGraph([]));
 
-            promised.forEach(elt /*: RFR.GraphResults[]*/ => {
-                elt.forEach(gElt /*: RFR.GraphResults*/ => {
-                    graphs.push(gElt.graph.value)
-                })
-            })
+            const promises = [];
+            for (const e of inputEntities)
+                promises.push(sparqlclient.query.select(queries.getObjectsOf(e)));
 
-            // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
-            if (graphs.length < 1) return new Promise((resolve, reject) => {
-                console.log('\x1b[31m%s\x1b[0m', 'not enough graphs')
-                reject(new RDFGraph([]))
-            });
-            else if (graphs.length > 1)
-            {
-                for (const item of new Set<string>(graphs)) { // the set is here to get rid of duplicates
-                    const firstIndex =  graphs.indexOf(item)
-                    if (firstIndex === graphs.length - 1 ) continue; // if the first occurrence is the last one of course there is nothing else
+            Promise.all<RFR.TripleResult[]>(promises).then(data => {
+                const nextPromises: Promise<RFR.TripleResult[]>[] = [];
+                const triples: RFR.TripleResult[] = data;
 
-                    const secondIndex = graphs.indexOf(item, firstIndex)
-                    if (secondIndex !== -1 ) tmp.push(item);
+                for (const d of data) {
+                    // nextPromises.push(sparqlclient.query.select(queries.getObjectsOf(d.o)));
+                    nextPromises.push(this.createFromEntitiesRec(d.o.value, depth - 1, triples))
                 }
 
-                graphs = tmp
-            }
+                Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
+                    // TODO
+                }).catch(err => reject(new RDFGraph([])));
 
-            return new Promise<RDFGraph>((resolve, reject) => {
-                const promises: Promise<RFR.TripleResult[]>[] = []
-                for (const g of graphs) {
-                    console.log('\x1b[31m%s\x1b[0m' ,"Change getFromGraph() to not nuke the endpoint!");
-                    throw new Error("Change getFromGraph() to not nuke the endpoint!");
-                    promises.push(this.getFromGraph(g, 10000))
-                }
-
-                Promise.all(promises).then((returnedTriples) => {
-                    const triples: RFR.TripleResult[] = []
-                    returnedTriples.forEach((dt) => triples.concat(dt))
-
-                    const toResolve = new RDFGraph([])
-
-                    toResolve.graph(new MultiDirectedGraph())
-                    toResolve.invertedGraph(new MultiDirectedGraph())
-
-                    for (const tuple of triples) {
-                        if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
-                        if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
-                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
-
-                        toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
-                            if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
-                            if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
-                            toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
-                        })
-                    }
-                    console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
-                    console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
-                    resolve(toResolve)
-                }).catch(() => {
-                    console.log('\x1b[31m%s\x1b[0m', `could not fetch graphs : ${graphs.join(' ')}`)
-                    reject()
-                })
-            });
+            }).catch(err => reject(new RDFGraph([])));
 
         })
+//         // Promises to get graphs from args
+//         const graphsPromises: Promise<RFR.GraphResults[]>[] = []
+//         inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
+//
+//         return Promise.all(graphsPromises).then(promised => {
+//             let graphs: string[] = []
+//             const tmp: string[] = []
+//
+//             promised.forEach(elt /*: RFR.GraphResults[]*/ => {
+//                 elt.forEach(gElt /*: RFR.GraphResults*/ => {
+//                     graphs.push(gElt.graph.value)
+//                 })
+//             })
+//
+//             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
+//             if (graphs.length < 1) return new Promise((resolve, reject) => {
+//                 console.log('\x1b[31m%s\x1b[0m', 'not enough graphs')
+//                 reject(new RDFGraph([]))
+//             });
+//             else if (graphs.length > 1)
+//             {
+//                 for (const item of new Set<string>(graphs)) { // the set is here to get rid of duplicates
+//                     const firstIndex =  graphs.indexOf(item)
+//                     if (firstIndex === graphs.length - 1 ) continue; // if the first occurrence is the last one of course there is nothing else
+//
+//                     const secondIndex = graphs.indexOf(item, firstIndex)
+//                     if (secondIndex !== -1 ) tmp.push(item);
+//                 }
+//
+//                 graphs = tmp
+//             }
+//
+//             return new Promise<RDFGraph>((resolve, reject) => {
+//                 const promises: Promise<RFR.TripleResult[]>[] = []
+//                 for (const g of graphs) {
+//                     console.log('\x1b[31m%s\x1b[0m' ,"Change getFromGraph() to not nuke the endpoint!");
+//                     throw new Error("Change getFromGraph() to not nuke the endpoint!");
+//                     promises.push(this.getFromGraph(g, 10000))
+//                 }
+//
+//                 Promise.all(promises).then((returnedTriples) => {
+//                     const triples: RFR.TripleResult[] = []
+//                     returnedTriples.forEach((dt) => triples.concat(dt))
+//
+//                     const toResolve = new RDFGraph([])
+//
+//                     toResolve.graph(new MultiDirectedGraph())
+//                     toResolve.invertedGraph(new MultiDirectedGraph())
+//
+//                     for (const tuple of triples) {
+//                         if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
+//                         if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
+//                         toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+//
+//                         toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
+//                             if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
+//                             if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
+//                             toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
+//                         })
+//                     }
+//                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
+//                     console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
+//                     resolve(toResolve)
+//                 }).catch(() => {
+//                     console.log('\x1b[31m%s\x1b[0m', `could not fetch graphs : ${graphs.join(' ')}`)
+//                     reject()
+//                 })
+//             });
+//
+//         })
     }
 
     static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
