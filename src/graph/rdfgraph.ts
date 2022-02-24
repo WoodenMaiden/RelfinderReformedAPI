@@ -13,8 +13,6 @@ class RDFGraph {
     private _graph: MultiDirectedGraph;
     private _invertedGraph: MultiDirectedGraph;
 
-    includedGraphs: string[];
-
 
     get graph(): any {
         return this._graph;
@@ -32,9 +30,7 @@ class RDFGraph {
         this._invertedGraph = value;
     }
 
-    private constructor(graphsToInclude: string[]) {
-        this.includedGraphs = graphsToInclude
-    }
+    private constructor() {}
 
     /**
      * @description get triples from one graph
@@ -82,16 +78,35 @@ class RDFGraph {
 
     private static createFromEntitiesRec(inputEntity: string, depth: number, triples: RFR.TripleResult[]): Promise<RFR.TripleResult[]> {
         return new Promise<RFR.TripleResult[]>((resolve, reject) => {
-            // TODO
-            resolve([])
+            if (depth < 1) resolve(triples);
+            else {
+                const promises: Promise<RFR.TripleResult[]>[] = [] ;
+                sparqlclient.query.select(queries.getObjectsOf(inputEntity)).then((tripleOfObjects: RFR.TripleResult[]) => {
+
+                    triples = triples.concat(tripleOfObjects)
+
+                    for (const t of tripleOfObjects)
+                        promises.push(this.createFromEntitiesRec(t.o.value, depth - 1, triples))
+
+                    Promise.all<RFR.TripleResult[]>(promises).then(recursedData => {
+                        for (const r of recursedData) // TODO : fix it!
+                            triples = triples.concat(r)
+                        resolve(triples)
+                    }).catch(() => reject([]));
+
+                }).catch(() => reject([]));
+            }
         })
     }
 
-    public static createFromEntities(inputEntities: string[], depth: number): Promise<RDFGraph>{
+    public static createFromEntities(inputEntities: string[], depth: number = 5): Promise<RDFGraph>{
         // REFACTORING IN PROGRESS
 
         return new Promise<RDFGraph>((resolve, reject) => {
-            if (inputEntities.length < 2) reject(new RDFGraph([]));
+            if (inputEntities.length < 2) {
+                console.log('\x1b[31m%s\x1b[0m' ,`Not enough entities, expected 2 or more, got ${inputEntities.length}`)
+                reject(new RDFGraph())
+            }
 
             const promises = [];
             for (const e of inputEntities)
@@ -99,7 +114,7 @@ class RDFGraph {
 
             Promise.all<RFR.TripleResult[]>(promises).then(data => {
                 const nextPromises: Promise<RFR.TripleResult[]>[] = [];
-                const triples: RFR.TripleResult[] = data;
+                let triples: RFR.TripleResult[] = data;
 
                 for (const d of data) {
                     // nextPromises.push(sparqlclient.query.select(queries.getObjectsOf(d.o)));
@@ -107,10 +122,41 @@ class RDFGraph {
                 }
 
                 Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
-                    // TODO
-                }).catch(err => reject(new RDFGraph([])));
+                    const toResolve: RDFGraph = new RDFGraph()
 
-            }).catch(err => reject(new RDFGraph([])));
+                    for (const c of recursedData)
+                        triples = triples.concat(c);
+
+                    toResolve.graph(new MultiDirectedGraph())
+                    toResolve.invertedGraph(new MultiDirectedGraph())
+
+                    for (const tuple of triples) {
+                        if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
+                        if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
+                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+
+                        toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
+                            if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
+                            if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
+                            toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
+                        })
+                    }
+
+                    console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
+                    console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
+                    resolve(toResolve)
+
+                }).catch(err => {
+                    console.log(err)
+                    console.log('\x1b[31m%s\x1b[0m' ,`Could not go further does your entities have neighbours ? `)
+                    reject(new RDFGraph())
+                });
+
+            }).catch(err => {
+                console.log(err)
+                console.log('\x1b[31m%s\x1b[0m' ,`Could not get input's neighbours, do they exist ?`)
+                reject(new RDFGraph())
+            });
 
         })
 //         // Promises to get graphs from args

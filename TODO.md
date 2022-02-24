@@ -1,6 +1,7 @@
 # Important
 - [x] Test if graph is completely fetch 
-- [ ] :bangbang: Try to not nuke the endpoint by getting triples
+- [x] :bangbang: Try to not nuke the endpoint by getting triples
+  - - [ ] Test it!
 - [ ] :bangbang: Finish depth first search
 
 # To do ASAP
