@@ -2,6 +2,7 @@ import Graph, { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
 
 import * as RFR from "RFR";
+import {Literal} from "RFR";
 
 const queries = require('./queries')
 const sparqlclient = require('./endpoint')
@@ -45,7 +46,6 @@ class RDFGraph {
                     console.log('\x1b[31m%s\x1b[0m', 'No triples!')
                     reject([]);
                 }
-                console.log(count[0])
                 let toResolve: RFR.TripleResult[] = []
 
                 let offsetQuery: number = 0;
@@ -55,7 +55,6 @@ class RDFGraph {
                     promises.push(sparqlclient.query.select(queries.getAll({graphs: [graph], offset: offsetQuery, limit: limitQuery})))
                     offsetQuery += limitQuery
                 } while (offsetQuery < count[0].counter.value);
-                console.log(promises)
 
                 Promise.all(promises).then((promisesArray) => {
                     for (const c of promisesArray){
@@ -76,7 +75,7 @@ class RDFGraph {
         });
     }
 
-    private static createFromEntitiesRec(inputEntity: string, depth: number, triples: RFR.TripleResult[]): Promise<RFR.TripleResult[]> {
+    private static createFromEntitiesRec(inputEntity: string, depth: number, triples: RFR.TripleResult[]): Promise<RFR.TripleResult[]|any> {
         return new Promise<RFR.TripleResult[]>((resolve, reject) => {
             if (depth < 1) resolve(triples);
             else {
@@ -85,16 +84,38 @@ class RDFGraph {
 
                     triples = triples.concat(tripleOfObjects)
 
-                    for (const t of tripleOfObjects)
+                    for (const t of tripleOfObjects) {
+                        // This breaks : check if the object is not a litteral{
+                        //   message: 'Failed To fetch from endpoint',
+                        //   error: Error: Bad Request (400): Virtuoso 37000 Error SP030: SPARQL compiler, line 0: Parentheses are not balanced at ')'
+                        //
+                        //   SPARQL query:
+                        //   SELECT ?s ?p ?o WHERE {
+                        //           ?s ?p ?o.
+                        //           FILTER (?s = <http://www.southgreen.fr/agrold/resource/keyword/Metal-binding_{ECO:0000256|ARBA:ARBA00022723,>)
+                        //   }
+                        //       at checkResponse (/ird/RelFinderReformedNode/node_modules/sparql-http-client/lib/checkResponse.js:7:15)
+                        //       at processTicksAndRejections (node:internal/process/task_queues:96:5)
+                        //       at async ParsingQuery.select (/ird/RelFinderReformedNode/node_modules/sparql-http-client/StreamQuery.js:73:5)
+                        //       at async ParsingQuery.select (/ird/RelFinderReformedNode/node_modules/sparql-http-client/ParsingQuery.js:41:20) {
+                        //     status: 400
+                        //   }
+                        // }
+
+                        if (this.instanceOfLiteral(t.o)) {
+                            // console.log("litteral!")
+                            continue
+                        }
                         promises.push(this.createFromEntitiesRec(t.o.value, depth - 1, triples))
+                    }
 
                     Promise.all<RFR.TripleResult[]>(promises).then(recursedData => {
-                        for (const r of recursedData) // TODO : fix it!
+                        for (const r of recursedData)
                             triples = triples.concat(r)
                         resolve(triples)
-                    }).catch(() => reject([]));
+                    }).catch((err) => reject(err));
 
-                }).catch(() => reject([]));
+                }).catch((err: any) => reject({ message: "Failed To fetch from endpoint", error: err}));
             }
         })
     }
@@ -108,17 +129,27 @@ class RDFGraph {
                 reject(new RDFGraph())
             }
 
-            const promises = [];
+            const promises: Promise<RFR.TripleResult[]>[] = [];
             for (const e of inputEntities)
                 promises.push(sparqlclient.query.select(queries.getObjectsOf(e)));
 
-            Promise.all<RFR.TripleResult[]>(promises).then(data => {
+            Promise.all(promises).then(data => {
                 const nextPromises: Promise<RFR.TripleResult[]>[] = [];
-                let triples: RFR.TripleResult[] = data;
+                let triples: RFR.TripleResult[] = [];
 
-                for (const d of data) {
-                    // nextPromises.push(sparqlclient.query.select(queries.getObjectsOf(d.o)));
-                    nextPromises.push(this.createFromEntitiesRec(d.o.value, depth - 1, triples))
+//                console.log(data)
+
+                for (const d of data)
+                    triples.concat(d)
+
+                for (const d of data){
+                    for (const c of d) {
+                        if (this.instanceOfLiteral(c.o)) {
+                            // console.log("litteral!")
+                            continue;
+                        }
+                        nextPromises.push(this.createFromEntitiesRec(c.o.value, depth - 1, triples))
+                    }
                 }
 
                 Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
@@ -313,6 +344,10 @@ class RDFGraph {
         return new MultiDirectedGraph()
     }
 */
+
+    private static instanceOfLiteral(object: any ): object is Literal {
+        return 'datatype' in object;
+    }
 }
 
 
