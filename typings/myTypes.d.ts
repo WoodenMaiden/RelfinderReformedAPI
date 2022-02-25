@@ -16,7 +16,7 @@ declare module "RFR" {
 	interface TripleResult {
      s: NamedNode,
      p: NamedNode,
-     o: NamedNode
+     o: NamedNode|Literal
 	}
 
 	interface CountResult {
