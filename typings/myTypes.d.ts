@@ -25,7 +25,7 @@ declare module "RFR" {
 
 	// Types used by sparql client
 	interface Literal {
-		value: number,
+		value: any,
 		datatype: NamedNode,
 		language: ''
 	}
