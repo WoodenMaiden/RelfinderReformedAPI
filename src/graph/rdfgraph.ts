@@ -1,5 +1,7 @@
 import Graph, { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
+// TODO import this
+// import * from "md5";
 
 import * as RFR from "RFR";
 import {Literal} from "RFR";
@@ -63,7 +65,7 @@ class RDFGraph {
                     console.log('\x1b[32m%s\x1b[0m', 'Fetched nodes successfully')
                     resolve(toResolve)
                 }).catch((err) =>{
-                    console.log('\x1b[31m%s\x1b[0m', err)
+                    console.log('\x1b[31m%s\x1b[0m', `Error: ${err}`)
                     reject([]);
                 })
 
@@ -85,27 +87,7 @@ class RDFGraph {
                     triples = triples.concat(tripleOfObjects)
 
                     for (const t of tripleOfObjects) {
-                        // This breaks : check if the object is not a litteral{
-                        //   message: 'Failed To fetch from endpoint',
-                        //   error: Error: Bad Request (400): Virtuoso 37000 Error SP030: SPARQL compiler, line 0: Parentheses are not balanced at ')'
-                        //
-                        //   SPARQL query:
-                        //   SELECT ?s ?p ?o WHERE {
-                        //           ?s ?p ?o.
-                        //           FILTER (?s = <http://www.southgreen.fr/agrold/resource/keyword/Metal-binding_{ECO:0000256|ARBA:ARBA00022723,>)
-                        //   }
-                        //       at checkResponse (/ird/RelFinderReformedNode/node_modules/sparql-http-client/lib/checkResponse.js:7:15)
-                        //       at processTicksAndRejections (node:internal/process/task_queues:96:5)
-                        //       at async ParsingQuery.select (/ird/RelFinderReformedNode/node_modules/sparql-http-client/StreamQuery.js:73:5)
-                        //       at async ParsingQuery.select (/ird/RelFinderReformedNode/node_modules/sparql-http-client/ParsingQuery.js:41:20) {
-                        //     status: 400
-                        //   }
-                        // }
-
-                        if (this.instanceOfLiteral(t.o)) {
-                            // console.log("litteral!")
-                            continue
-                        }
+                        if (this.instanceOfLiteral(t.o)) continue
                         promises.push(this.createFromEntitiesRec(t.o.value, depth - 1, triples))
                     }
 
@@ -158,12 +140,15 @@ class RDFGraph {
                     for (const c of recursedData)
                         triples = triples.concat(c);
 
-                    toResolve.graph(new MultiDirectedGraph())
-                    toResolve.invertedGraph(new MultiDirectedGraph())
+                    toResolve.graph = new MultiDirectedGraph()
+                    toResolve.invertedGraph = new MultiDirectedGraph()
 
                     for (const tuple of triples) {
                         if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
                         if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
+                        // TODO fix this by adding a key generated with md5 to avoid any conflicts
+                        // OR
+                        // Check if graphology doesn't already do it, then check key value before creating it
                         toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
 
                         toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
@@ -188,78 +173,7 @@ class RDFGraph {
                 console.log('\x1b[31m%s\x1b[0m' ,`Could not get input's neighbours, do they exist ?`)
                 reject(new RDFGraph())
             });
-
         })
-//         // Promises to get graphs from args
-//         const graphsPromises: Promise<RFR.GraphResults[]>[] = []
-//         inputEntities.forEach(entity => graphsPromises.push(sparqlclient.query.select(queries.getGraphFromEntity(entity))))
-//
-//         return Promise.all(graphsPromises).then(promised => {
-//             let graphs: string[] = []
-//             const tmp: string[] = []
-//
-//             promised.forEach(elt /*: RFR.GraphResults[]*/ => {
-//                 elt.forEach(gElt /*: RFR.GraphResults*/ => {
-//                     graphs.push(gElt.graph.value)
-//                 })
-//             })
-//
-//             // Here we will keep all graphs that are common between at least two entities : we will later load these graphs se we don't load a million of tuples
-//             if (graphs.length < 1) return new Promise((resolve, reject) => {
-//                 console.log('\x1b[31m%s\x1b[0m', 'not enough graphs')
-//                 reject(new RDFGraph([]))
-//             });
-//             else if (graphs.length > 1)
-//             {
-//                 for (const item of new Set<string>(graphs)) { // the set is here to get rid of duplicates
-//                     const firstIndex =  graphs.indexOf(item)
-//                     if (firstIndex === graphs.length - 1 ) continue; // if the first occurrence is the last one of course there is nothing else
-//
-//                     const secondIndex = graphs.indexOf(item, firstIndex)
-//                     if (secondIndex !== -1 ) tmp.push(item);
-//                 }
-//
-//                 graphs = tmp
-//             }
-//
-//             return new Promise<RDFGraph>((resolve, reject) => {
-//                 const promises: Promise<RFR.TripleResult[]>[] = []
-//                 for (const g of graphs) {
-//                     console.log('\x1b[31m%s\x1b[0m' ,"Change getFromGraph() to not nuke the endpoint!");
-//                     throw new Error("Change getFromGraph() to not nuke the endpoint!");
-//                     promises.push(this.getFromGraph(g, 10000))
-//                 }
-//
-//                 Promise.all(promises).then((returnedTriples) => {
-//                     const triples: RFR.TripleResult[] = []
-//                     returnedTriples.forEach((dt) => triples.concat(dt))
-//
-//                     const toResolve = new RDFGraph([])
-//
-//                     toResolve.graph(new MultiDirectedGraph())
-//                     toResolve.invertedGraph(new MultiDirectedGraph())
-//
-//                     for (const tuple of triples) {
-//                         if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
-//                         if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
-//                         toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
-//
-//                         toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
-//                             if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
-//                             if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
-//                             toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
-//                         })
-//                     }
-//                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
-//                     console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
-//                     resolve(toResolve)
-//                 }).catch(() => {
-//                     console.log('\x1b[31m%s\x1b[0m', `could not fetch graphs : ${graphs.join(' ')}`)
-//                     reject()
-//                 })
-//             });
-//
-//         })
     }
 
     static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
@@ -349,7 +263,5 @@ class RDFGraph {
         return 'datatype' in object;
     }
 }
-
-
 
 exports = module.exports = RDFGraph

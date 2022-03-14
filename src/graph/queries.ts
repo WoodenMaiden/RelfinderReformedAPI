@@ -48,7 +48,7 @@ WHERE {
     static getObjectsOf(subject: string/*, opt: QueryOptions*/): string {
         return `SELECT ?s ?p ?o WHERE {
         ?s ?p ?o.
-        FILTER (?s = <${subject}>)
+        FILTER (STR(?s) = "${subject}")
 }`
     };
 
