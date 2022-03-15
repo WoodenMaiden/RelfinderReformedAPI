@@ -1,7 +1,8 @@
 import Graph, { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
 // TODO import this
-// import * from "md5";
+// @ts-ignore
+import  {Md5} from "ts-md5";
 
 import * as RFR from "RFR";
 import {Literal} from "RFR";
@@ -117,9 +118,7 @@ class RDFGraph {
 
             Promise.all(promises).then(data => {
                 const nextPromises: Promise<RFR.TripleResult[]>[] = [];
-                let triples: RFR.TripleResult[] = [];
-
-//                console.log(data)
+                const triples: RFR.TripleResult[] = [];
 
                 for (const d of data)
                     triples.concat(d)
@@ -135,10 +134,17 @@ class RDFGraph {
                 }
 
                 Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
-                    const toResolve: RDFGraph = new RDFGraph()
+                    // TODO test if edges has duplicates on construction
 
-                    for (const c of recursedData)
-                        triples = triples.concat(c);
+                    const toResolve: RDFGraph = new RDFGraph()
+                    let indexedge: bigint = BigInt(0)
+
+                    for (const arr of recursedData){
+                        for (const c of arr){
+                            const index = triples.find(elt => elt.s.value === c.s.value && elt.p.value === c.p.value && elt.o.value.toString() === c.o.value.toString())
+                            if (!index) triples.push(c);
+                        }
+                    }
 
                     toResolve.graph = new MultiDirectedGraph()
                     toResolve.invertedGraph = new MultiDirectedGraph()
@@ -146,16 +152,15 @@ class RDFGraph {
                     for (const tuple of triples) {
                         if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
                         if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
-                        // TODO fix this by adding a key generated with md5 to avoid any conflicts
-                        // OR
-                        // Check if graphology doesn't already do it, then check key value before creating it
-                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+
+                        toResolve.graph.addDirectedEdgeWithKey(indexedge.toString(), tuple.s.value, tuple.o.value, {value: tuple.p.value})
 
                         toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
                             if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
                             if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
                             toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
                         })
+                        ++indexedge
                     }
 
                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
