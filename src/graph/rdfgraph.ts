@@ -1,8 +1,5 @@
-import Graph, { MultiDirectedGraph } from "graphology";
+import { MultiDirectedGraph } from "graphology";
 import { Attributes } from "graphology-types";
-// TODO import this
-// @ts-ignore
-import  {Md5} from "ts-md5";
 
 import * as RFR from "RFR";
 import {Literal} from "RFR";
@@ -104,7 +101,6 @@ class RDFGraph {
     }
 
     public static createFromEntities(inputEntities: string[], depth: number = 5): Promise<RDFGraph>{
-        // REFACTORING IN PROGRESS
 
         return new Promise<RDFGraph>((resolve, reject) => {
             if (inputEntities.length < 2) {
@@ -125,19 +121,14 @@ class RDFGraph {
 
                 for (const d of data){
                     for (const c of d) {
-                        if (this.instanceOfLiteral(c.o)) {
-                            // console.log("litteral!")
-                            continue;
-                        }
+                        if (this.instanceOfLiteral(c.o)) continue;
+
                         nextPromises.push(this.createFromEntitiesRec(c.o.value, depth - 1, triples))
                     }
                 }
 
                 Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
-                    // TODO test if edges has duplicates on construction
-
                     const toResolve: RDFGraph = new RDFGraph()
-                    let indexedge: bigint = BigInt(0)
 
                     for (const arr of recursedData){
                         for (const c of arr){
@@ -153,18 +144,16 @@ class RDFGraph {
                         if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
                         if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
 
-                        toResolve.graph.addDirectedEdgeWithKey(indexedge.toString(), tuple.s.value, tuple.o.value, {value: tuple.p.value})
+                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
 
                         toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
                             if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
                             if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
-                            toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
+                            if (!toResolve.invertedGraph.hasEdge(edge)) toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
                         })
-                        ++indexedge
                     }
 
                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
-                    console.log('\x1b[36m%s\x1b[0m', `inverted graph edges = ${toResolve.invertedGraph.size}, graph nodes = ${toResolve.invertedGraph.order}`)
                     resolve(toResolve)
 
                 }).catch(err => {
@@ -172,7 +161,6 @@ class RDFGraph {
                     console.log('\x1b[31m%s\x1b[0m' ,`Could not go further does your entities have neighbours ? `)
                     reject(new RDFGraph())
                 });
-
             }).catch(err => {
                 console.log(err)
                 console.log('\x1b[31m%s\x1b[0m' ,`Could not get input's neighbours, do they exist ?`)
