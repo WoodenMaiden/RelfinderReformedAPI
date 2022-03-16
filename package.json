@@ -27,11 +27,13 @@
     "npm-run-all": "^4.1.5",
     "sparql-http-client": "^2.4.0",
     "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.3.0"
+    "swagger-ui-express": "^4.3.0",
+    "yargs": "^17.3.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.12",
     "@types/sparql-http-client": "^2.2.8",
+    "@types/yargs": "^17.0.9",
     "graphology-types": "^0.24.3",
     "nodemon": "^2.0.15",
     "tslint": "^6.1.3",

@@ -1,19 +1,33 @@
-import { Readable } from "stream";
-import * as RFR from "RFR";
-
 require('dotenv').config();
 const express = require('express')
+const bodyParser = require('body-parser')
+const cors = require('cors');
+import yargs from 'yargs';
 
+
+import * as RFR from "RFR";
 const sparqlclient = require('./graph/endpoint')
 const queries = require('./graph/queries')
 const RDFGraph = require('./graph/rdfgraph')
-const bodyParser = require('body-parser')
-const cors = require('cors');
+
 
 const jsonparse = bodyParser.json()
 const app = express()
 const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
 const STARTDATE = new Date()
+
+// arguments
+const args = yargs(process.argv.slice(1)).options({
+    "c": {
+        alias: "check-connection",
+        choices: ["none", "no-crash", "strict"],
+        default: "none",
+        demandOption: false,
+        describe: "At startup, end a sample query to the database to check its status\n\t- \"none\" : no checking, default option\n\t- \"no-crash\" : check but does not crash\n\t- \"strict\" : check and crashes if it fails",
+        type: "string"
+    }
+}).parseSync();
+
 
 app.use(cors({origin: '*'}));
 
@@ -37,9 +51,10 @@ app.get("/nodes", jsonparse, (req: any, res: any) => {
     }
 })
 
-app.get("/relfinder", jsonparse, (req: any, res: any) => {
+app.get(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
+    const depth: number = req.url.split('/').slice(-1)[0];
     if (!req.body.nodes || req.body.nodes.length < 2) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-    RDFGraph.createFromEntities(req.body.nodes, 5).then((graph: typeof RDFGraph) => {
+    RDFGraph.createFromEntities(req.body.nodes, depth).then((graph: typeof RDFGraph) => {
         res.status(200).send(graph)
     }).catch((err: any) => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err}))
 })
@@ -54,9 +69,9 @@ app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
 
 app.listen(PORT, () => {
     console.log('\x1b[32m%s\x1b[0m' ,`Server started at port ${PORT}`);
-    console.log('\x1b[33m%s\x1b[0m' ,`Sending query to check endpoint's status...`);
 
-    sparqlclient.query.select(queries.getAll({offset: 0, limit:1})). then(() => {
+    sparqlclient.query.select(queries.getAll({offset: 0, limit:1})).then(() => {
+        console.log('\x1b[33m%s\x1b[0m' ,`Sending query to check endpoint's status...`);
         console.log('\x1b[32m%s\x1b[0m' ,`Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
     }).catch((err: string) => {
         console.log('\x1b[31m%s\x1b[0m' ,`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
