@@ -26,6 +26,7 @@ const args = yargs(process.argv.slice(1)).options({
         describe: "At startup, end a sample query to the database to check its status\n\t- \"none\" : no checking, default option\n\t- \"no-crash\" : check but does not crash\n\t- \"strict\" : check and crashes if it fails",
         type: "string"
     }
+    // TODO logging here
 }).parseSync();
 
 
@@ -70,12 +71,18 @@ app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
 app.listen(PORT, () => {
     console.log('\x1b[32m%s\x1b[0m' ,`Server started at port ${PORT}`);
 
-    sparqlclient.query.select(queries.getAll({offset: 0, limit:1})).then(() => {
-        console.log('\x1b[33m%s\x1b[0m' ,`Sending query to check endpoint's status...`);
-        console.log('\x1b[32m%s\x1b[0m' ,`Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
-    }).catch((err: string) => {
-        console.log('\x1b[31m%s\x1b[0m' ,`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
-        console.log(err)
-        process.exit(1)
-    });
+    if (args.c !== "none") {
+
+        console.log('\x1b[33m%s\x1b[0m', `Sending query to check endpoint's status...`);
+
+        sparqlclient.query.select(queries.getAll({offset: 0, limit: 1})).then(() => {
+            console.log('\x1b[32m%s\x1b[0m', `Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
+        }).catch((err: string) => {
+            console.log('\x1b[31m%s\x1b[0m', `Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
+            if (args.c === "strict") {
+                console.log(err)
+                process.exit(1)
+            }
+        });
+    }
 })
