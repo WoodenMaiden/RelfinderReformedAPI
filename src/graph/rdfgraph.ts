@@ -169,36 +169,19 @@ class RDFGraph {
         })
     }
 
-    static nodeExists(aGraph: MultiDirectedGraph, toFind: string): boolean{
-        let val;
-        aGraph.findNode((node: string): any => {
-            if (node === toFind) val = true;
-            else val = false;
-        })
-        return val
-    }
-
-    static edgeExists(aGraph: MultiDirectedGraph, toFind: string): boolean {
-        let val;
-        aGraph.findOutEdge((edge: string): any => {
-            if (edge === toFind) val = true;
-            else val = false;
-        })
-        return val
-    }
-
     depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string, depth: number = 5): MultiDirectedGraph {
-        if (!RDFGraph.nodeExists(baseGraph, startNode) || depth <= 0) return null;
+        if (!baseGraph.hasNode(startNode) || depth <= 0) return null;
         if (baseGraph.outNeighbors(startNode) === []) return null;
+
         const depthed = new MultiDirectedGraph();
         depthed.addNode(startNode) // equivalent of tagging
 
         // 👇 forloop to put in depthFirstSearchRec()
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
-            if (!RDFGraph.nodeExists(depthed, neighbor)){
+            if (!depthed.hasNode(neighbor)){
                 depthed.addNode(neighbor, attributes);
                 baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if (!RDFGraph.edgeExists(depthed, edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
+                    if (depthed.hasEdge(edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
                 });
                 this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
             }
@@ -213,10 +196,10 @@ class RDFGraph {
         if (baseGraph.outNeighbors(node) === []) return;
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string, attributes: any): void => {
-            if (!RDFGraph.nodeExists(genGraph, neighbor)) {
+            if ((genGraph.hasNode(neighbor))) {
                 genGraph.addNode(neighbor, attributes)
                 baseGraph.forEachDirectedEdge(node, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if(!RDFGraph.edgeExists(genGraph, edge)) genGraph.addDirectedEdgeWithKey(edge, node, neighbor, edgeAttributes)
+                    if(genGraph.hasEdge(edge)) genGraph.addDirectedEdgeWithKey(edge, node, neighbor, edgeAttributes)
                 })
             }
             this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, genGraph)
