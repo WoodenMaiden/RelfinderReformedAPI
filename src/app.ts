@@ -55,6 +55,7 @@ app.get(/^\/(?:info)?$/, (req: any, res: any) => {
 //     }
 // })
 
+
 app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
     const depth: number = req.url.split('/').slice(-1)[0];
     if (!req.body.nodes || req.body.nodes.length < 2)
