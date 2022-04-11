@@ -182,12 +182,11 @@ class RDFGraph {
             if (!depthed.hasNode(neighbor)){
                 depthed.addNode(neighbor, attributes);
                 baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if (depthed.hasEdge(edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
+                    if (!depthed.hasEdge(edge)) depthed.addDirectedEdgeWithKey(edge, neighbor, startNode, edgeAttributes)
                 });
                 this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
             }
         })
-
         return depthed
     }
 
@@ -197,10 +196,10 @@ class RDFGraph {
         if (baseGraph.outNeighbors(node) === []) return;
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string, attributes: any): void => {
-            if ((genGraph.hasNode(neighbor))) {
+            if ((!genGraph.hasNode(neighbor))) {
                 genGraph.addNode(neighbor, attributes)
                 baseGraph.forEachDirectedEdge(node, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if(genGraph.hasEdge(edge)) genGraph.addDirectedEdgeWithKey(edge, node, neighbor, edgeAttributes)
+                    if(!genGraph.hasEdge(edge)) genGraph.addDirectedEdgeWithKey(edge, neighbor, node, edgeAttributes)
                 })
             }
             this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, genGraph)

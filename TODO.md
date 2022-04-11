@@ -1,8 +1,9 @@
 # Important
 - [x] Test if graph is completely fetch 
 - [x] :bangbang: Try to not nuke the endpoint by getting triples
-  - - [ ] Test it!
-- [ ] :bangbang: Finish depth first search
+  - - [x] Test it!
+- [x] :bangbang: Finish depth first search
+- [ ] 
 
 # To do ASAP
 - [ ] Fully switch to ES6 syntax
