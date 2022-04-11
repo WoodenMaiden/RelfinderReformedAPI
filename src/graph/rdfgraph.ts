@@ -117,7 +117,8 @@ class RDFGraph {
                 const triples: RFR.TripleResult[] = [];
 
                 for (const d of data)
-                    triples.concat(d)
+                    for (const elt of d)
+                        triples.push(elt)
 
                 for (const d of data){
                     for (const c of d) {
