@@ -155,6 +155,9 @@ class RDFGraph {
                     }
 
                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
+//                    console.log(toResolve.depthFirstSearch(toResolve.graph, inputEntities[0], depth).size)
+//                    console.log(toResolve.kosaraju(inputEntities[0], '', depth))
+                    toResolve.kosaraju(inputEntities[0], '', depth)
                     resolve(toResolve)
 
                 }).catch(err => {
@@ -170,19 +173,19 @@ class RDFGraph {
         })
     }
 
-    depthFirstSearch (baseGraph: MultiDirectedGraph/* = this.graph*/, startNode: string, depth: number = 5): MultiDirectedGraph {
+/*
+    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, depth: number = 5): MultiDirectedGraph {
         if (!baseGraph.hasNode(startNode) || depth <= 0) return null;
         if (baseGraph.outNeighbors(startNode) === []) return null;
 
         const depthed = new MultiDirectedGraph();
         depthed.addNode(startNode) // equivalent of tagging
 
-        // 👇 forloop to put in depthFirstSearchRec()
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string, attributes: any): void => {
             if (!depthed.hasNode(neighbor)){
                 depthed.addNode(neighbor, attributes);
                 baseGraph.forEachDirectedEdge(startNode, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if (!depthed.hasEdge(edge)) depthed.addDirectedEdgeWithKey(edge, neighbor, startNode, edgeAttributes)
+                    if (!depthed.hasEdge(edge)) depthed.addDirectedEdgeWithKey(edge, startNode, neighbor, edgeAttributes)
                 });
                 this.depthFirstSearchRec(baseGraph, neighbor, depth, depthed)
             }
@@ -199,26 +202,91 @@ class RDFGraph {
             if ((!genGraph.hasNode(neighbor))) {
                 genGraph.addNode(neighbor, attributes)
                 baseGraph.forEachDirectedEdge(node, neighbor, (edge: string, edgeAttributes: any): void => {
-                    if(!genGraph.hasEdge(edge)) genGraph.addDirectedEdgeWithKey(edge, neighbor, node, edgeAttributes)
+                    if(!genGraph.hasEdge(edge)) genGraph.addDirectedEdgeWithKey(edge, node, neighbor, edgeAttributes)
                 })
             }
             this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, genGraph)
         })
     }
+*/
+    /**
+     * @description Returns
+     * @param baseGraph
+     * @param startNode
+     * @param depth
+     */
+    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, depth: number = 5): Map<string, string[]> {
+        // https://github.com/striver79/StriversGraphSeries/blob/main/kosaRajuJava
+
+        if (!baseGraph.hasNode(startNode) || depth <= 0) return null;
+        if (baseGraph.outNeighbors(startNode) === []) return null;
+
+        const stack: string[] = new Array<string>(startNode);
+        const tagArray: string[] = new Array<string>(startNode);
+        let toReturn: Map<string, string[]> =
+            new Map<string, string[]>([["stack", stack], ["tagArray", tagArray]])
+
+        baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string): void => {
+
+            if (!toReturn.get("tagArray").includes(neighbor)){
+                toReturn.get("tagArray").push(neighbor);
+
+                toReturn = this.depthFirstSearchRec(baseGraph, neighbor, depth, toReturn)
+            }
+        })
+
+        toReturn.get("stack").push(startNode)
+        return toReturn;
+    }
 
 
-// TODO
+    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, depthRemaining: number = 5, stackAndTags: Map<string, string[]>): Map<string, string[]> {
+        --depthRemaining;
+        if (depthRemaining <= 0) return stackAndTags;
+        if (baseGraph.outNeighbors(node) === []) return stackAndTags;
+        let toReturn: Map<string, string[]> = stackAndTags;
+
+        baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
+
+            if ((!toReturn.get("tagArray").includes(neighbor))) {
+                toReturn.get("tagArray").push(neighbor)
+
+                toReturn = this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, toReturn)
+            }
+        })
+
+        toReturn.get("stack").push(node)
+        return toReturn;
+    }
 
     /**
-     * Returns a Graph that has the 2 inputs nodes and all nocdes in between
+     * @description Returns a Graph that has the 2 inputs nodes and all nodes in between.
+     * To do so we use the Kosaraju algorithm to find strongly connected components, which will
+     * find strongly connected components and thus show us all relations between the two nodes
+     * https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm
+     *
      * @param maxMoves
      * @param node1
      * @param node2
+     * @param depth
      */
-    kosaraju(maxMoves: number, node1: string, node2:string ): MultiDirectedGraph {
+    kosaraju(node1: string, node2: string, depth: number): MultiDirectedGraph {
+        // TODO
+        const toReturn: MultiDirectedGraph = new MultiDirectedGraph();
+/*
+        let map: Map<string, string[]> = this.depthFirstSearch(this.graph, node1, depth)
+        const visited: string[] = map.get("tagArray")
+        const stack: string[] = map.get("stack")
 
 
-        return new MultiDirectedGraph()
+        for(const elt of this.graph.nodes()) {
+            if(elt !== node1 && map.get("tagArray").includes(elt)) {
+                console.log(elt)
+                map = this.depthFirstSearch(this.graph, elt, depth)
+            }
+        }
+*/
+        return toReturn;
     }
 
     /**
