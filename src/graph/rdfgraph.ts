@@ -11,9 +11,13 @@ const sparqlclient = require('./endpoint')
 class RDFGraph {
 
     static queries: typeof queries = queries;
+
     private _graph: MultiDirectedGraph;
     private _invertedGraph: MultiDirectedGraph;
 
+    // Used for reverse dfs in kosaraju algorithm
+    private _stack: string[] = []
+    private _visited: string[] = []
 
     get graph(): any {
         return this._graph;
@@ -177,74 +181,78 @@ class RDFGraph {
      * @param baseGraph
      * @param startNode
      */
-    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string): Map<string, string[]> {
+    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string): void {
         // inspired from https://github.com/striver79/StriversGraphSeries/blob/main/kosaRajuJava
 
         if (baseGraph.outNeighbors(startNode) === []) return null;
 
-        const stack: string[] = new Array<string>(startNode);
-        const tagArray: string[] = new Array<string>(startNode);
-        let toReturn: Map<string, string[]> =
-            new Map<string, string[]>([["stack", stack], ["tagArray", tagArray]])
+        this._stack.push(startNode)
+        this._visited.push(startNode)
 
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string): void => {
 
-            if (!toReturn.get("tagArray").includes(neighbor)){
-                toReturn.get("tagArray").push(neighbor);
+            if (!this._visited.includes(neighbor)){
+                this._visited.push(neighbor);
 
-                toReturn = this.depthFirstSearchRec(baseGraph, neighbor, toReturn)
+                this.depthFirstSearchRec(baseGraph, neighbor)
             }
         })
 
-        toReturn.get("stack").push(startNode)
-        return toReturn;
+        this._stack.push(startNode)
     }
 
 
-    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, stackAndTags: Map<string, string[]>): Map<string, string[]> {
-        if (baseGraph.outNeighbors(node) === []) return stackAndTags;
+    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string): void {
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
 
-            if ((!stackAndTags.get("tagArray").includes(neighbor))) {
-                stackAndTags.get("tagArray").push(neighbor)
+            if ((!this._visited.includes(neighbor))) {
+                this._visited.push(neighbor)
 
-                stackAndTags = this.depthFirstSearchRec(baseGraph, neighbor, stackAndTags)
+                this.depthFirstSearchRec(baseGraph, neighbor)
             }
         })
 
-        stackAndTags.get("stack").push(node)
-        return stackAndTags;
+        this._stack.push(node)
     }
 
 
-    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string, stackAndTagged: Map<string, string[]>): string[][] {
+    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string): string[][] {
         const SCCs: string[][] = []
 
-        while(stackAndTagged.get("stack").length > 0) {
-            const start = stackAndTagged.get("stack").pop()
+        // this integer will separate the current SCC from previous SCCs when pushing them into the matrix
+        /*
+            visited array : | node1 | node2 | node3 | node4 | node5 | node6 | node7 |
+                            |---------------|-----------------------|---------------|
+                                oldSCC1             oldSCC2         |     newSCC
+                                                               SCCboundary
+            SCCs.push(this._visited.slice(SCCboundary))
+         */
 
-            if (!stackAndTagged.get("tagArray").includes(start)) {
-                const newLength: number = SCCs.push(this.reversedDepthFirstSearchRec(baseGraph, start, stackAndTagged.get("tagArray")))
-                stackAndTagged.set("tagArray",
-                    stackAndTagged.get("tagArray").concat(SCCs[newLength-1])
-                        .filter(elt => stackAndTagged.get("tagArray").indexOf(elt) === stackAndTagged.get("tagArray").lastIndexOf(elt)))
+        let SCCboundary: number = 0
+
+        while(this._stack.length > 0) {
+            const start = this._stack.pop()
+            if (!this._visited.includes(start)) {
+                this.reversedDepthFirstSearchRec(baseGraph, start)
+                const newLength: number = SCCs.push(this._visited.slice(SCCboundary))
+
+                SCCboundary = this._visited.length
             }
         }
         return SCCs;
     }
 
 
-    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, visited: string[]): string[] {
-        if (baseGraph.outNeighbors(node) === []) return visited;
-            baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
-                if (!visited.includes(neighbor)) {
-                    visited.push(neighbor)
+    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string): string[] {
+        baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
+            if (!this._visited.includes(neighbor)) {
+                this._visited.push(neighbor)
 
-                    visited = this.reversedDepthFirstSearchRec(baseGraph, neighbor, visited)
-                }
-            })
-        return visited.filter(elt => visited.indexOf(elt) === visited.lastIndexOf(elt))
+                this.reversedDepthFirstSearchRec(baseGraph, neighbor)
+            }
+        })
+        return this._visited.filter(elt => this._visited.indexOf(elt) === this._visited.lastIndexOf(elt))
     }
 
 
@@ -259,9 +267,12 @@ class RDFGraph {
     kosaraju(node1: string): string[][] {
         let SCCs: string[][]
 
-        const map: Map<string, string[]> = this.depthFirstSearch(this.graph, node1)
-        map.set("tagArray", [])
-        SCCs = this.reversedDepthFirstSearch(this.invertedGraph, node1, map)
+        this.depthFirstSearch(this.graph, node1)
+        this._visited = []
+        SCCs = this.reversedDepthFirstSearch(this.invertedGraph, node1)
+
+        for(let i = 0; i < SCCs.length; ++i)
+            console.log(i +": " + SCCs[i].length)
 
         return SCCs
     }
