@@ -2,8 +2,10 @@ require('dotenv').config();
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors');
+
 import yargs from 'yargs';
 import {MultiDirectedGraph} from "graphology";
+import {Attributes} from "graphology-types";
 
 
 import * as RFR from "RFR";
@@ -56,11 +58,38 @@ app.get("/nodes", jsonparse, (req: any, res: any) => {
 app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
     const depth: number = req.url.split('/').slice(-1)[0];
     if (!req.body.nodes || req.body.nodes.length < 2) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-    RDFGraph.createFromEntities(req.body.nodes, depth).then((graph: typeof RDFGraph) => {
+    RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: typeof RDFGraph) => {
 
-        const depthed: MultiDirectedGraph = graph.depthFirstSearch(graph.graph, req.body.nodes[0])
-        res.status(200).send(depthed)
-//        res.status(200).send(graph.graph)
+        const toReturn: MultiDirectedGraph = new MultiDirectedGraph()
+        const SCCs: string [][] = rdf.kosaraju(req.body.nodes[0])
+
+
+        // First we will see if any of these SCCs contains both of our nodes, meaning that we already have all paths available,
+        // linking SCCS will come in a later commmit
+
+        let sccIndex: number = 0;
+        let found: boolean = false;
+
+        while(sccIndex < SCCs.length){
+            if (SCCs[sccIndex].length !==0)
+                if (SCCs[sccIndex].includes(req.body.nodes[0])
+                    && SCCs[sccIndex].includes(req.body.nodes[1])){
+                        found = true;
+                        break
+                }
+
+            ++sccIndex
+        }
+
+        if (found) {
+            SCCs[sccIndex].forEach(elt => toReturn.addNode(elt))
+            for (const subject of SCCs[sccIndex])
+                for (const object of SCCs[sccIndex])
+                    rdf.graph.forEachDirectedEdge(subject, object,
+                        (edge: string, attributes: Attributes, source: string, target: string) => (!toReturn.hasDirectedEdge(edge))? toReturn.addDirectedEdgeWithKey(edge, source, target, attributes) : /*pass*/ {})
+        }
+
+        res.status(200).send(toReturn)
     }).catch((err: any) => {
         console.log(err)
         res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
