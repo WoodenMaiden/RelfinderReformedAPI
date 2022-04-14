@@ -155,7 +155,6 @@ class RDFGraph {
                     }
 
                     console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
-//                    toResolve.kosaraju(inputEntities[0], '', depth)
                     resolve(toResolve)
 
                 }).catch(err => {
@@ -177,12 +176,10 @@ class RDFGraph {
      * @description Returns
      * @param baseGraph
      * @param startNode
-     * @param depth
      */
-    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, depth: number = 5): Map<string, string[]> {
+    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string): Map<string, string[]> {
         // inspired from https://github.com/striver79/StriversGraphSeries/blob/main/kosaRajuJava
 
-        if (!baseGraph.hasNode(startNode) || depth <= 0) return null;
         if (baseGraph.outNeighbors(startNode) === []) return null;
 
         const stack: string[] = new Array<string>(startNode);
@@ -195,7 +192,7 @@ class RDFGraph {
             if (!toReturn.get("tagArray").includes(neighbor)){
                 toReturn.get("tagArray").push(neighbor);
 
-                toReturn = this.depthFirstSearchRec(baseGraph, neighbor, depth, toReturn)
+                toReturn = this.depthFirstSearchRec(baseGraph, neighbor, toReturn)
             }
         })
 
@@ -204,9 +201,7 @@ class RDFGraph {
     }
 
 
-    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, depthRemaining: number, stackAndTags: Map<string, string[]>): Map<string, string[]> {
-        --depthRemaining;
-        if (depthRemaining <= 0) return stackAndTags;
+    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, stackAndTags: Map<string, string[]>): Map<string, string[]> {
         if (baseGraph.outNeighbors(node) === []) return stackAndTags;
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
@@ -214,7 +209,7 @@ class RDFGraph {
             if ((!stackAndTags.get("tagArray").includes(neighbor))) {
                 stackAndTags.get("tagArray").push(neighbor)
 
-                stackAndTags = this.depthFirstSearchRec(baseGraph, neighbor, depthRemaining, stackAndTags)
+                stackAndTags = this.depthFirstSearchRec(baseGraph, neighbor, stackAndTags)
             }
         })
 
@@ -222,63 +217,34 @@ class RDFGraph {
         return stackAndTags;
     }
 
-/* commented because these functions aren't functionnal, we are keeping them here just in case
 
-    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string, depth: number = 5, visited: string[]): string[] {
-        const oldVisited: string[] = visited;
-
-        baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string): void => {
-            if (!visited.includes(neighbor)){
-                visited.push(neighbor);
-
-                visited = this.reversedDepthFirstSearchRec(baseGraph, neighbor, depth, visited)
-            }
-        });
-
-        const diff: string[] = oldVisited.filter(node => !visited.includes(node));
-
-        return diff;
-    }
-
-    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, depthRemaining: number = 5, visited: string[]): string[] {
-        --depthRemaining;
-        if (depthRemaining <= 0) return visited;
-        if (baseGraph.outNeighbors(node) === []) return visited;
-
-        baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
-
-            if ((!visited.includes(neighbor))) {
-                visited.push(neighbor)
-
-                visited = this.reversedDepthFirstSearchRec(baseGraph, node, depthRemaining, visited)
-            }
-        })
-        return visited;
-    }
-*/
-
-    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string, stackAndTagged: Map<string, string[]>, depth: number = 5): string[][] {
-        // TODO
+    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string, stackAndTagged: Map<string, string[]>): string[][] {
         const SCCs: string[][] = []
 
         while(stackAndTagged.get("stack").length > 0) {
             const start = stackAndTagged.get("stack").pop()
 
             if (!stackAndTagged.get("tagArray").includes(start)) {
-                const newLength: number = SCCs.push(this.reversedDepthFirstSearchRec(baseGraph, start, stackAndTagged.get("tagArray"), depth))
-                stackAndTagged.set("tagArray", stackAndTagged.get("tagArray").concat(SCCs[newLength-1]))
+                const newLength: number = SCCs.push(this.reversedDepthFirstSearchRec(baseGraph, start, stackAndTagged.get("tagArray")))
+                stackAndTagged.set("tagArray",
+                    stackAndTagged.get("tagArray").concat(SCCs[newLength-1])
+                        .filter(elt => stackAndTagged.get("tagArray").indexOf(elt) === stackAndTagged.get("tagArray").lastIndexOf(elt)))
             }
         }
         return SCCs;
     }
 
 
-    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, visited: string[], depthRemaining: number): string[] {
-        --depthRemaining;
-        if (depthRemaining <= 0) return visited;
+    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, visited: string[]): string[] {
         if (baseGraph.outNeighbors(node) === []) return visited;
-            // TODO
-        return [];
+            baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
+                if (!visited.includes(neighbor)) {
+                    visited.push(neighbor)
+
+                    visited = this.reversedDepthFirstSearchRec(baseGraph, neighbor, visited)
+                }
+            })
+        return visited.filter(elt => visited.indexOf(elt) === visited.lastIndexOf(elt))
     }
 
 
@@ -288,33 +254,16 @@ class RDFGraph {
      * find strongly connected components and thus show us all relations between the two nodes
      * https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm
      *
-     * @param maxMoves
      * @param node1
-     * @param node2
-     * @param depth
      */
-    kosaraju(node1: string, node2: string, depth: number): string[][] {
-        // TODO
+    kosaraju(node1: string): string[][] {
+        let SCCs: string[][]
 
-        // const SCCs: string[][] = []
-
-        const map: Map<string, string[]> = this.depthFirstSearch(this.graph, node1, depth)
+        const map: Map<string, string[]> = this.depthFirstSearch(this.graph, node1)
         map.set("tagArray", [])
+        SCCs = this.reversedDepthFirstSearch(this.invertedGraph, node1, map)
 
-        return this.reversedDepthFirstSearch(this.invertedGraph, node1, map, depth)
-
-/*
-        const stack = map.get("stack")
-
-        while (stack.length > 0) {
-            const start: string = stack.pop()
-            const SCCnodes: string[] = this.reversedDepthFirstSearch(this.invertedGraph, start, depth, map.get("tagArray"))
-
-            SCCs.push(SCCnodes)
-        }
-*/
-
-        // return SCCs;
+        return SCCs
     }
 
     /**
