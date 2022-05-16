@@ -181,80 +181,35 @@ class RDFGraph {
      * @param baseGraph
      * @param startNode
      */
-    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string): void {
-        // inspired from https://github.com/striver79/StriversGraphSeries/blob/main/kosaRajuJava
+    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
 
         if (baseGraph.outNeighbors(startNode) === []) return null;
 
-        this._stack.push(startNode)
         this._visited.push(startNode)
 
         baseGraph.forEachOutboundNeighbor(startNode, (neighbor: string): void => {
 
             if (!this._visited.includes(neighbor)){
-                this._visited.push(neighbor);
-
-                this.depthFirstSearchRec(baseGraph, neighbor)
+                this.depthFirstSearchRec(baseGraph, neighbor, stacking)
             }
         })
 
-        this._stack.push(startNode)
+        if (stacking) this._stack.push(startNode)
     }
 
 
-    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string): void {
+    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, stacking: boolean): void {
+        this._visited.push(node)
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
 
             if ((!this._visited.includes(neighbor))) {
-                this._visited.push(neighbor)
-
-                this.depthFirstSearchRec(baseGraph, neighbor)
+                this.depthFirstSearchRec(baseGraph, neighbor, stacking)
             }
         })
 
-        this._stack.push(node)
+        if (stacking) this._stack.push(node)
     }
-
-
-    reversedDepthFirstSearch(baseGraph: MultiDirectedGraph, startNode: string): string[][] {
-        const SCCs: string[][] = []
-
-        // this integer will separate the current SCC from previous SCCs when pushing them into the matrix
-        /*
-            visited array : | node1 | node2 | node3 | node4 | node5 | node6 | node7 |
-                            |---------------|-----------------------|---------------|
-                                oldSCC1             oldSCC2         |     newSCC
-                                                               SCCboundary
-            SCCs.push(this._visited.slice(SCCboundary))
-         */
-
-        let SCCboundary: number = 0
-
-        while(this._stack.length > 0) {
-            const start = this._stack.pop()
-            if (!this._visited.includes(start)) {
-                this.reversedDepthFirstSearchRec(baseGraph, start)
-                const newLength: number = SCCs.push(this._visited.slice(SCCboundary))
-
-                SCCboundary = this._visited.length
-            }
-        }
-        return SCCs;
-    }
-
-
-    reversedDepthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string): string[] {
-        baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
-            if (!this._visited.includes(neighbor)) {
-                this._visited.push(neighbor)
-
-                this.reversedDepthFirstSearchRec(baseGraph, neighbor)
-            }
-        })
-        return this._visited.filter(elt => this._visited.indexOf(elt) === this._visited.lastIndexOf(elt))
-    }
-
 
     /**
      * @description Returns a matrix of all Strongly Connected Components (SCC)
@@ -265,14 +220,20 @@ class RDFGraph {
      * @param node1
      */
     kosaraju(node1: string): string[][] {
-        let SCCs: string[][]
 
-        this.depthFirstSearch(this.graph, node1)
+        this.depthFirstSearch(this.graph, node1, true)
         this._visited = []
-        SCCs = this.reversedDepthFirstSearch(this.invertedGraph, node1)
 
-        for(let i = 0; i < SCCs.length; ++i)
-            console.log(i +": " + SCCs[i].length)
+        const SCCs: string[][] = []
+        let offset: number = 0
+
+        // here we are doing dfs on the inverted graph, we start each time at the node on top of the stack
+        while(this._stack.length > 0){
+            this.depthFirstSearch(this.invertedGraph, this._stack.pop(), false)
+            if (this._visited.slice(offset).length > 1 ) SCCs.push(this._visited.slice(offset))
+            offset = this._visited.length
+        }
+
 
         return SCCs
     }
