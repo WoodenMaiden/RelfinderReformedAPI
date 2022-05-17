@@ -11,31 +11,25 @@ abstract class Queries /*implements QueryObject*/ {
     };
 
     static getAll(opt: QueryOptions): string {
-        if (!opt.excludedClasses) opt.excludedClasses = process.env.EXCLUDED_CLASSES.split(' ');
-        if (!opt.includedClasses) opt.includedClasses = process.env.INCLUDED_CLASSES.split(' ');
-        if (!opt.graphs) opt.graphs = process.env.INCLUDED_GRAPHS.split(' ');
-        if (!opt.excludedNamespaces) opt.excludedNamespaces = process.env.EXCLUDED_NAMESPACES.split(' ')
-        if (!opt.includedNamespaces) opt.includedNamespaces = process.env.INCLUDED_NAMESPACES.split(' ')
-        if (!opt.offset === undefined || !opt.offset === null || opt.offset < 0 ) opt.offset = 0
-        if (!opt.limit === undefined || !opt.limit === null || opt.limit < 0 ) opt.limit = 10000
+        const ExclClss: string[] = (!opt.excludedClasses)? process.env.EXCLUDED_CLASSES.split(' '): opt.excludedClasses;
+        const InclClss: string[] = (!opt.includedClasses)? process.env.INCLUDED_CLASSES.split(' '): opt.includedClasses;
+        const grph: string[] = (!opt.graphs)? process.env.INCLUDED_GRAPHS.split(' '): opt.graphs;
+        const ExclNS: string[] = (!opt.excludedNamespaces)? process.env.EXCLUDED_NAMESPACES.split(' '): opt.excludedNamespaces;
+        const InclNS: string[] = (!opt.includedNamespaces)? process.env.INCLUDED_NAMESPACES.split(' '): opt.includedNamespaces;
+        const offset: number = (!opt.offset === undefined || !opt.offset === null || opt.offset < 0 )? 0: opt.offset;
+        const limit: number = (!opt.limit === undefined || !opt.limit === null || opt.limit < 0 )? 10000: opt.limit;
 
-        return `SELECT distinct ?s ?p ?o ${(opt.graphs[0] === '') ? "" : `FROM <${opt.graphs.join('> FROM <')}>`} {
+        return `SELECT distinct ?s ?p ?o ${(grph[0] === '') ? "" : `FROM <${grph.join('> FROM <')}>`} {
     ?s ?p ?o.
-    ${(opt.excludedClasses[0] === '') ? "" : `FILTER (?s NOT IN (<${opt.excludedClasses.join("> <")}>))`}
-    ${(opt.includedClasses[0] === '') ? "" : `FILTER (?s IN (<${opt.includedClasses.join("> <")}>))`}
-    ${(opt.excludedNamespaces[0] === '') ? "" : `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(opt.excludedNamespaces)}'))`}
-    ${(opt.includedNamespaces[0] === '') ? "" : `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(opt.includedNamespaces)}'))`}
-} offset ${opt.offset} limit ${opt.limit}`
+    ${(ExclClss[0] === '') ? "" : `FILTER (?s NOT IN (<${ExclClss.join("> <")}>))`}
+    ${(InclClss[0] === '') ? "" : `FILTER (?s IN (<${InclClss.join("> <")}>))`}
+    ${(ExclNS[0] === '') ? "" : `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(ExclNS)}'))`}
+    ${(InclNS[0] === '') ? "" : `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(InclNS)}'))`}
+} offset ${offset} limit ${limit}`
     };
 
     static getGraphFromEntity(entity: string): string {
-        return `${this.prefixes()}
-SELECT DISTINCT ?graph
-WHERE {
- GRAPH ?graph {
-   <${entity}> ?p ?o.
- }
-}`
+        return `${this.prefixes()} SELECT DISTINCT ?graph WHERE { GRAPH ?graph { <${entity}> ?p ?o. }}`
     }
 
     private static generateNamespacesRegex(strings: string[]): string {
@@ -46,13 +40,10 @@ WHERE {
     }
 
     static getObjectsOf(subject: string/*, opt: QueryOptions*/): string {
-        return `SELECT ?s ?p ?o WHERE {
-        ?s ?p ?o.
-        FILTER (STR(?s) = "${subject}")
-}`
+        return `SELECT ?s ?p ?o WHERE { ?s ?p ?o. FILTER (STR(?s) = "${subject}")}`
     };
 
     static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
 }
 
-exports = module.exports = Queries
+export default Queries

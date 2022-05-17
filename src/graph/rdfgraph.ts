@@ -4,8 +4,8 @@ import { Attributes } from "graphology-types";
 import * as RFR from "RFR";
 import {Literal} from "RFR";
 
-const queries = require('./queries')
-const sparqlclient = require('./endpoint')
+import queries from'./queries'
+import client from './endpoint'
 
 
 class RDFGraph {
@@ -45,7 +45,7 @@ class RDFGraph {
      */
     private static getFromGraph(graph: string, limitQuery: number): Promise<RFR.TripleResult[]> {
         return new Promise<RFR.TripleResult[]> ((resolve, reject) => {
-            sparqlclient.query.select(queries.countTriplesOfGraph(graph)).then((count: RFR.CountResult[]) => {
+            client.query.select(queries.countTriplesOfGraph(graph)).then((count: any[]) => {
                 if (count[0].counter.value < 1) {
                     console.log('\x1b[31m%s\x1b[0m', 'No triples!')
                     reject([]);
@@ -53,10 +53,10 @@ class RDFGraph {
                 let toResolve: RFR.TripleResult[] = []
 
                 let offsetQuery: number = 0;
-                const promises: Promise<RFR.TripleResult[]> [] = []
+                const promises: Promise<any[]> [] = []
 
                 do {
-                    promises.push(sparqlclient.query.select(queries.getAll({graphs: [graph], offset: offsetQuery, limit: limitQuery})))
+                    promises.push(client.query.select(queries.getAll({graphs: [graph], offset: offsetQuery, limit: limitQuery})))
                     offsetQuery += limitQuery
                 } while (offsetQuery < count[0].counter.value);
 
@@ -84,7 +84,7 @@ class RDFGraph {
             if (depth < 1) resolve(triples);
             else {
                 const promises: Promise<RFR.TripleResult[]>[] = [] ;
-                sparqlclient.query.select(queries.getObjectsOf(inputEntity)).then((tripleOfObjects: RFR.TripleResult[]) => {
+                client.query.select(queries.getObjectsOf(inputEntity)).then((tripleOfObjects:any []) => {
 
                     triples = triples.concat(tripleOfObjects)
 
@@ -112,9 +112,9 @@ class RDFGraph {
                 reject(new RDFGraph())
             }
 
-            const promises: Promise<RFR.TripleResult[]>[] = [];
+            const promises: Promise<any[]>[] = [];
             for (const e of inputEntities)
-                promises.push(sparqlclient.query.select(queries.getObjectsOf(e)));
+                promises.push(client.query.select(queries.getObjectsOf(e)));
 
             Promise.all(promises).then(data => {
                 const nextPromises: Promise<RFR.TripleResult[]>[] = [];
@@ -257,4 +257,4 @@ class RDFGraph {
     }
 }
 
-exports = module.exports = RDFGraph
+export default RDFGraph
