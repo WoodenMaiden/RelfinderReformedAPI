@@ -1,12 +1,14 @@
 declare module "RFR" {
 	export interface QueryOptions {
-	    excludedClasses: string[],
-	    includedClasses: string[],
-	    excludedNamespaces: string[],
-	    includedNamespaces: string[],
-	    graphs: string[],
-	    offset: number,
-	    limit: number
+		[key: string]: any //string[] | number
+
+		//offset: number,
+	    //limit: number,
+		// graphs: string[],
+		// excludedClasses: string[],
+	    // includedClasses: string[],
+	    // excludedNamespaces: string[],
+	    // includedNamespaces: string[],
 	}
 
 	export interface GraphResults {

@@ -1,18 +1,17 @@
-require('dotenv').config();
-const express = require('express')
-const bodyParser = require('body-parser')
-const cors = require('cors');
+import 'dotenv/config'
+import express from 'express'
+import bodyParser from 'body-parser'
 
+import cors, {CorsOptions} from 'cors';
 import yargs from 'yargs';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
 import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 
-import * as RFR from "RFR";
-const sparqlclient = require('./graph/endpoint')
-const queries = require('./graph/queries')
-const RDFGraph = require('./graph/rdfgraph')
+import client from './graph/endpoint'
+import Queries from './graph/queries'
+import RDFGraph from './graph/rdfgraph'
 
 
 const jsonparse = bodyParser.json()
@@ -33,28 +32,28 @@ const args = yargs(process.argv.slice(1)).options({
     // TODO logging here
 }).parseSync();
 
-
-app.use(cors({origin: '*'}));
+const options: CorsOptions = {origin: '*'}
+app.use(cors(options));
 
 app.get(/^\/(?:info)?$/, (req: any, res: any) => {
     res.status(200).send({message: "OK!", APIVersion: "1.0.0test", nodeVersion: process.version, uptime: process.uptime(), startDate: STARTDATE});
 })
 
-app.get("/graphs", jsonparse, (req: any, res: any) => {
-    if (!req.body.nodes || req.body.nodes.length < 1) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-    else sparqlclient.query.select(queries.getGraphFromEntity(req.body.nodes[0])).then((data: RFR.GraphResults[] ) => {
-        res.status(200).send(data)
-    }).catch((err: any) => res.status(404).send(err))
-})
+// app.get("/graphs", jsonparse, (req: any, res: any) => {
+//     if (!req.body.nodes || req.body.nodes.length < 1) res.status(404).send({message: "please read the /docs route to see how to use this route"})
+//     else sparqlclient.query.select(Queries.getGraphFromEntity(req.body.nodes[0])).then((data: RFR.GraphResults[] ) => {
+//         res.status(200).send(data)
+//     }).catch((err: any) => res.status(404).send(err))
+// })
 
-app.get("/nodes", jsonparse, (req: any, res: any) => {
-    if (!req.body.graph || !req.body.limit) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-    else {
-        RDFGraph.getFromGraph(req.body.graph, req.body.limit).then((data: RFR.TripleResult[]) => {
-            res.status(200).send(data)
-        }).catch(() => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?"}))
-    }
-})
+// app.get("/nodes", jsonparse, (req: any, res: any) => {
+//     if (!req.body.graph || !req.body.limit) res.status(404).send({message: "please read the /docs route to see how to use this route"})
+//     else {
+//         RDFGraph.getFromGraph(req.body.graph, req.body.limit).then((data: RFR.TripleResult[]) => {
+//             res.status(200).send(data)
+//         }).catch(() => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?"}))
+//     }
+// })
 
 app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
     const depth: number = req.url.split('/').slice(-1)[0];
@@ -63,7 +62,7 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
 
     else {
 
-        RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: typeof RDFGraph) => {
+        RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: RDFGraph) => {
 
             const tmp: MultiDirectedGraph = new MultiDirectedGraph()
             const toReturn: MultiDirectedGraph = new MultiDirectedGraph()
@@ -154,13 +153,12 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
     }
 })
 
-app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
-    const start: string = req.body.start;
-    const depth: number = req.url.split('/').slice(-1)[0];
-    const graph: any = RDFGraph.depthFirstSearch(RDFGraph.graph, start, depth)
-    if (!graph) res.status(400).send({message: 'subgraph could not be processed'})
-    else res.status(200).send(graph)
-})
+// app.get(/\/depth/, jsonparse, (req: any, res: any) => {
+//     const start: string = req.body.start;
+//     const graph: any = RDFGraph.depthFirstSearch(RDFGraph.graph, start, false)
+//     if (!graph) res.status(400).send({message: 'subgraph could not be processed'})
+//     else res.status(200).send(graph)
+// })
 
 app.listen(PORT, () => {
     console.log('\x1b[32m%s\x1b[0m' ,`Server started at port ${PORT}`);
@@ -169,7 +167,7 @@ app.listen(PORT, () => {
 
         console.log('\x1b[33m%s\x1b[0m', `Sending query to check endpoint's status...`);
 
-        sparqlclient.query.select(queries.getAll({offset: 0, limit: 1})).then(() => {
+        client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
             console.log('\x1b[32m%s\x1b[0m', `Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
         }).catch((err: string) => {
             console.log('\x1b[31m%s\x1b[0m', `Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
