@@ -6,7 +6,7 @@ const cors = require('cors');
 import yargs from 'yargs';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
-
+import {bidirectional} from 'graphology-shortest-path/unweighted';
 
 import * as RFR from "RFR";
 const sparqlclient = require('./graph/endpoint')
@@ -57,43 +57,93 @@ app.get("/nodes", jsonparse, (req: any, res: any) => {
 
 app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
     const depth: number = req.url.split('/').slice(-1)[0];
-    if (!req.body.nodes || req.body.nodes.length < 2) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-    RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: typeof RDFGraph) => {
+    if (!req.body.nodes || req.body.nodes.length < 2)
+        res.status(404).send({message: "please read the /docs route to see how to use this route"})
 
-        const toReturn: MultiDirectedGraph = new MultiDirectedGraph()
-        const SCCs: string [][] = rdf.kosaraju(req.body.nodes[0])
+    else {
+
+        RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: typeof RDFGraph) => {
+
+            const tmp: MultiDirectedGraph = new MultiDirectedGraph()
+            const toReturn: MultiDirectedGraph = new MultiDirectedGraph()
+            const SCCs: string [][] = rdf.kosaraju(req.body.nodes[0])
 
 
-        // First we will see if any of these SCCs contains both of our nodes, meaning that we already have all paths available,
-        // linking SCCS will come in a later commmit
+            // First we will see if any of these SCCs contains both of our nodes, meaning that we already have all paths available,
 
-        let sccIndex: number = 0;
-        let found: boolean = false;
+            let sccIndex: number = 0;
+            let found: boolean = false;
 
-        while(sccIndex < SCCs.length){
-            if (SCCs[sccIndex].length !==0)
-                if (SCCs[sccIndex].includes(req.body.nodes[0])
-                    && SCCs[sccIndex].includes(req.body.nodes[1])){
-                        found = true;
-                        break
+            while(sccIndex < SCCs.length){
+                if (SCCs[sccIndex].length !==0)
+                    if (SCCs[sccIndex].includes(req.body.nodes[0])
+                        && SCCs[sccIndex].includes(req.body.nodes[1])){
+                            found = true;
+                            break
+                    }
+
+                ++sccIndex
+            }
+
+            if (found) {
+                SCCs[sccIndex].forEach(elt => tmp.addNode(elt))
+                for (const subject of SCCs[sccIndex])
+                    for (const object of SCCs[sccIndex])
+                        rdf.graph.forEachDirectedEdge(subject, object,
+                            (edge: string, attributes: Attributes, source: string, target: string) => (!tmp.hasDirectedEdge(edge))? tmp.addDirectedEdgeWithKey(edge, source, target, attributes) : /*pass*/ {})
+            }
+            else { // If they are on separate SCCs
+                // Since every node in a SCC is acesssible from anywhere within it, we will abstract these as nodes and apply djikstra
+                let nbSCC: number = 0
+
+                interface AssociativeArray {
+                    [key: string]: string;
                 }
 
-            ++sccIndex
-        }
+                const nodeToSCC: AssociativeArray = {}
 
-        if (found) {
-            SCCs[sccIndex].forEach(elt => toReturn.addNode(elt))
-            for (const subject of SCCs[sccIndex])
-                for (const object of SCCs[sccIndex])
-                    rdf.graph.forEachDirectedEdge(subject, object,
-                        (edge: string, attributes: Attributes, source: string, target: string) => (!toReturn.hasDirectedEdge(edge))? toReturn.addDirectedEdgeWithKey(edge, source, target, attributes) : /*pass*/ {})
-        }
+                for(const SCCelt of SCCs){
+                    tmp.addNode(`scc${++nbSCC}`, {elements: SCCelt})
+                    for (const elt of SCCelt) nodeToSCC[elt] = `scc${nbSCC}`
+                }
 
-        res.status(200).send(toReturn)
-    }).catch((err: any) => {
-        console.log(err)
-        res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
-    })
+                rdf.graph.forEachNode((node: string) => (!nodeToSCC[node])? tmp.addNode(node): "pass")
+
+
+                rdf.graph.forEachEdge((edge: string, attributes: Attributes,
+                    source: string, target: string) => {
+                        tmp.addDirectedEdgeWithKey(
+                        edge, (!nodeToSCC[source])? source: nodeToSCC[source],
+                        (!nodeToSCC[target])? target: nodeToSCC[target], attributes)
+                })
+
+                const path = bidirectional(tmp,
+                    (!nodeToSCC[req.body.nodes[0]])? req.body.nodes[0]: nodeToSCC[req.body.nodes[0]],
+                    (!nodeToSCC[req.body.nodes[1]])? req.body.nodes[1]: nodeToSCC[req.body.nodes[1]]
+                )
+
+                path.forEach((node: string) => {
+                    if (node.substring(0,3) !== "scc") toReturn.addNode(node)
+                    else tmp.getNodeAttribute(node, "elements").forEach((elt: string) => toReturn.addNode(elt))
+                })
+
+                console.log(toReturn.nodes())
+
+                toReturn.forEachNode((nodestart: string) => rdf._graph.forEachOutboundNeighbor(nodestart,
+                        (neighbor: string) => rdf._graph.forEachDirectedEdge(nodestart, neighbor,
+                            (edge: string, attributes: Attributes) => (toReturn.hasNode(neighbor) && !toReturn.hasEdge(edge))
+                                ? toReturn.addDirectedEdgeWithKey(edge, nodestart, neighbor, attributes)
+                                : "")))
+
+
+            }
+
+            res.status(200).send(/*(toReturn.nodes().length > 0)? toReturn:*/ rdf.graph)
+        }).catch((err: any) => {
+            console.log(err)
+            res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
+        })
+    }
 })
 
 app.get(/\/depth\/\d+/, jsonparse, (req: any, res: any) => {
