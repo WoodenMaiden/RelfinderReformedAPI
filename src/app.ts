@@ -7,6 +7,7 @@ import yargs from 'yargs';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
 import {bidirectional} from 'graphology-shortest-path/unweighted';
+import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 
 import * as RFR from "RFR";
 const sparqlclient = require('./graph/endpoint')
@@ -69,8 +70,18 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
             const SCCs: string [][] = rdf.kosaraju(req.body.nodes[0])
 
 
-            // First we will see if any of these SCCs contains both of our nodes, meaning that we already have all paths available,
+            function drawSCC(scc: string[]) {
+                for (const subject of scc){
+                   if (!toReturn.hasNode(subject)) toReturn.addNode(subject)
+                   for (const object of scc){
+                       if (!toReturn.hasNode(object)) toReturn.addNode(object)
+                       rdf.graph.forEachDirectedEdge(subject, object,
+                           (edge: string, attributes: Attributes, source: string, target: string) => (!toReturn.hasDirectedEdge(edge))? toReturn.addDirectedEdgeWithKey(edge, source, target, attributes) : /*pass*/ {})
+                   }
+               }
+            }
 
+            // First we will see if any of these SCCs contains both of our nodes, meaning that we already have all paths available,
             let sccIndex: number = 0;
             let found: boolean = false;
 
@@ -86,11 +97,7 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
             }
 
             if (found) {
-                SCCs[sccIndex].forEach(elt => tmp.addNode(elt))
-                for (const subject of SCCs[sccIndex])
-                    for (const object of SCCs[sccIndex])
-                        rdf.graph.forEachDirectedEdge(subject, object,
-                            (edge: string, attributes: Attributes, source: string, target: string) => (!tmp.hasDirectedEdge(edge))? tmp.addDirectedEdgeWithKey(edge, source, target, attributes) : /*pass*/ {})
+                drawSCC(SCCs[sccIndex])
             }
             else { // If they are on separate SCCs
                 // Since every node in a SCC is acesssible from anywhere within it, we will abstract these as nodes and apply djikstra
@@ -122,23 +129,24 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
                     (!nodeToSCC[req.body.nodes[1]])? req.body.nodes[1]: nodeToSCC[req.body.nodes[1]]
                 )
 
+                const pathEdges = edgePathFromNodePath(tmp, path)
+
+                // draw useful SCCs
                 path.forEach((node: string) => {
                     if (node.substring(0,3) !== "scc") toReturn.addNode(node)
-                    else tmp.getNodeAttribute(node, "elements").forEach((elt: string) => toReturn.addNode(elt))
+                    else drawSCC(tmp.getNodeAttribute(node, "elements"))
                 })
 
-                console.log(toReturn.nodes())
-
-                toReturn.forEachNode((nodestart: string) => rdf._graph.forEachOutboundNeighbor(nodestart,
-                        (neighbor: string) => rdf._graph.forEachDirectedEdge(nodestart, neighbor,
-                            (edge: string, attributes: Attributes) => (toReturn.hasNode(neighbor) && !toReturn.hasEdge(edge))
-                                ? toReturn.addDirectedEdgeWithKey(edge, nodestart, neighbor, attributes)
-                                : "")))
-
+                // draw links
+                pathEdges.forEach((link) => {
+                    toReturn.addDirectedEdgeWithKey(link, rdf.graph.source(link),
+                        rdf.graph.target(link), rdf.graph.getEdgeAttributes(link))
+                })
 
             }
 
-            res.status(200).send(/*(toReturn.nodes().length > 0)? toReturn:*/ rdf.graph)
+            res.status(200).send((toReturn.nodes().length > 0)? toReturn: rdf.graph)
+
         }).catch((err: any) => {
             console.log(err)
             res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
