@@ -35,7 +35,36 @@ class RDFGraph {
         this._invertedGraph = value;
     }
 
-    private constructor() {}
+    get stack(): string[] {
+        return this._stack
+    }
+
+    get visited(): string[] {
+        return this._stack
+    }
+
+    set stack(value: string[]) {
+        this.stack = value;
+    }
+
+    set visited(value: string[]) {
+        this.visited = value;
+    }
+
+    public emptyStack(): string[] {
+        const toreturn = this._stack
+        this._stack = []
+        return toreturn
+    }
+
+    public emptyVisited() {
+        const toreturn = this._visited
+        this._visited = []
+        return toreturn
+    }
+
+
+    public constructor() {}
 
     /**
      * @description get triples from one graph
