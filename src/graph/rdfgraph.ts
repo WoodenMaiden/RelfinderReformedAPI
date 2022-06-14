@@ -39,12 +39,12 @@ class RDFGraph {
         return this._stack
     }
 
-    get visited(): string[] {
-        return this._stack
-    }
-
     set stack(value: string[]) {
         this.stack = value;
+    }
+
+    get visited(): string[] {
+        return this._stack
     }
 
     set visited(value: string[]) {
@@ -64,12 +64,15 @@ class RDFGraph {
     }
 
 
-    public constructor() {}
+    public constructor() {
+        /*pass*/
+    }
 
     /**
-     * @description get triples from one graph
-     * @param graph
-     * @param limitQuery
+     * @description A recursive function get triples from a given graph
+     * @param graph The URI of a RDF graph
+     * @param limitQuery How many triples you fetch per request, some endpoints like virtuoso defines a maximum of triples to return
+     * @return TripleResult[], a array of triples
      * @private
      */
     private static getFromGraph(graph: string, limitQuery: number): Promise<RFR.TripleResult[]> {
@@ -133,6 +136,15 @@ class RDFGraph {
         })
     }
 
+
+    /**
+     * @description A recursive function to create and fill a RDFGraph object
+     * @param inputEntities an array of entities URIS
+     * @param depth the detph of generated graph
+     * @public
+     * @static
+     * @returns RDFGraph
+     */
     public static createFromEntities(inputEntities: string[], depth: number = 5): Promise<RDFGraph>{
 
         return new Promise<RDFGraph>((resolve, reject) => {
@@ -206,11 +218,12 @@ class RDFGraph {
 
 
     /**
-     * @description Returns
-     * @param baseGraph
-     * @param startNode
+     * @description fills the visited array and the stack
+     * @param baseGraph a graph to visit
+     * @param startNode node to start from
+     * @param stacking psecifies wheter or not to fill the stack
      */
-    depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
+    private depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
 
         if (baseGraph.outNeighbors(startNode) === []) return null;
 
@@ -227,7 +240,7 @@ class RDFGraph {
     }
 
 
-    depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, stacking: boolean): void {
+    private depthFirstSearchRec(baseGraph: MultiDirectedGraph, node: string, stacking: boolean): void {
         this._visited.push(node)
 
         baseGraph.forEachOutboundNeighbor(node, (neighbor: string): void => {
@@ -246,9 +259,11 @@ class RDFGraph {
      * find strongly connected components and thus show us all relations between the two nodes
      * https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm
      *
-     * @param node1
+     * @param node1 the node to start from
+     * @return string[][], SCCs
+     * @public
      */
-    kosaraju(node1: string): string[][] {
+    public kosaraju(node1: string): string[][] {
 
         this.depthFirstSearch(this.graph, node1, true)
         this._visited = []
@@ -275,7 +290,7 @@ class RDFGraph {
      * @param nodes
      * @returns
      */
-/*    multipleKosaraju(maxMoves: number, node1: string, node2: string, ...nodes: string[]): MultiDirectedGraph  {
+/*    public multipleKosaraju(maxMoves: number, node1: string, node2: string, ...nodes: string[]): MultiDirectedGraph  {
 
         return new MultiDirectedGraph()
     }
