@@ -8,6 +8,7 @@ import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
 import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
+import { Request, Response } from 'express';
 
 import client from './graph/endpoint'
 import Queries from './graph/queries'
@@ -16,8 +17,17 @@ import RDFGraph from './graph/rdfgraph'
 
 const jsonparse = bodyParser.json()
 const app = express()
+
 const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
 const STARTDATE = new Date()
+const cpuUsage = {
+    max: process.cpuUsage(),
+    current : process.cpuUsage()
+}
+const memoryUsage = {
+    max: process.memoryUsage().heapUsed,
+    current: process.memoryUsage().heapUsed
+}
 
 // arguments
 const args = yargs(process.argv.slice(1)).options({
@@ -35,8 +45,39 @@ const args = yargs(process.argv.slice(1)).options({
 const options: CorsOptions = {origin: '*'}
 app.use(cors(options));
 
-app.get(/^\/(?:info)?$/, (req: any, res: any) => {
-    res.status(200).send({message: "OK!", APIVersion: "1.0.0test", nodeVersion: process.version, uptime: process.uptime(), startDate: STARTDATE});
+app.get('/', (req: Request, res: Response) => {
+    res.status(204).send();
+})
+
+app.get("/health", async (req: Request, res: Response) => {
+    let time: number = 0
+    let connectionStatus: boolean = false
+    let error: Error
+    const UPTIME: number = process.uptime() // Math.floor(process.uptime())
+
+    try {
+        const start: number = Date.now()
+        await client.query.select(Queries.getAll({offset: 0, limit: 1}))
+        time = Date.now() - start
+        connectionStatus = true
+    }
+    catch(e: any) {
+        error = e
+    }
+    finally {
+        res.status(200).send({
+            message: "OK!",
+            APIVersion: "1.0.0test",
+            endpoint: (connectionStatus)? { status: connectionStatus, queryTime: time }: { status: connectionStatus, error },
+            ressources : {
+                cpu : cpuUsage,
+                memory : memoryUsage
+            },
+            uptime: `${Math.floor((UPTIME/60)/60)}h ${Math.floor((UPTIME/60)%60)}m ${Math.floor(UPTIME % 60)}s ${Math.floor(UPTIME % 1 *1000)}ms`,
+            calculatedStart: new Date(Date.now() - UPTIME * 1000),
+        });
+    }
+
 })
 
 // app.get("/graphs", jsonparse, (req: any, res: any) => {
@@ -56,8 +97,8 @@ app.get(/^\/(?:info)?$/, (req: any, res: any) => {
 // })
 
 
-app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
-    const depth: number = req.url.split('/').slice(-1)[0];
+app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
+    const depth: number = parseInt(req.url.split('/').slice(-1)[0], 10);
     if (!req.body.nodes || req.body.nodes.length < 2)
         res.status(404).send({message: "please read the /docs route to see how to use this route"})
 
@@ -163,7 +204,7 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: any, res: any) => {
 
                 // draw links
                 pathEdges.forEach((link) => {
-                    toReturn.addDirectedEdgeWithKey(link, rdf.graph.source(link),
+                    if (!toReturn.hasDirectedEdge(link)) toReturn.addDirectedEdgeWithKey(link, rdf.graph.source(link),
                         rdf.graph.target(link), rdf.graph.getEdgeAttributes(link))
                 })
 
@@ -203,3 +244,15 @@ app.listen(PORT, () => {
         });
     }
 })
+
+// monitoring
+setInterval(() =>  {
+    // CPU
+    cpuUsage.current = process.cpuUsage(cpuUsage.current)
+    if (cpuUsage.max.system < cpuUsage.current.system || cpuUsage.max.user < cpuUsage.current.user ) cpuUsage.max = cpuUsage.current
+
+    // memory
+    memoryUsage.current = process.memoryUsage().heapUsed
+    if (memoryUsage.max < memoryUsage.current) memoryUsage.max = memoryUsage.current
+
+}, 1000)
