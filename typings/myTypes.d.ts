@@ -15,24 +15,33 @@ declare module "RFR" {
 	    graph: NamedNode
 	}
 
-	interface TripleResult {
-     s: NamedNode,
-     p: NamedNode,
-     o: NamedNode|Literal
+	export interface TripleResult {
+		s: NamedNode,
+		p: NamedNode,
+		o: NamedNode|Literal
 	}
 
-	interface CountResult {
+	export interface CountResult {
 		counter: Literal
 	}
 
 	// Types used by sparql client
-	interface Literal {
+	export interface Literal {
 		value: any,
 		datatype: NamedNode,
 		language: ''
 	}
 
-	interface NamedNode {
+	export interface NamedNode {
 		value: string
+	}
+
+	export const enum LogLevel {
+		FATAL = 0,
+		ERROR = 1,
+		WARN = 2,
+		INFO = 3,
+		DEBUG = 4,
+		TRACE = 5
 	}
 }

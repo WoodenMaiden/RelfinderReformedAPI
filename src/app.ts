@@ -1,3 +1,5 @@
+import {createWriteStream} from "fs"
+
 import 'dotenv/config'
 import express from 'express'
 import bodyParser from 'body-parser'
@@ -10,16 +12,20 @@ import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 import { Request, Response } from 'express';
 
+import {LogLevel} from "RFR"
+
 import client from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
+import Logger from './utils/logger';
 
 
 const jsonparse = bodyParser.json()
 const app = express()
 
 const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
-const STARTDATE = new Date()
+const LEVELS: string[] = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
+
 const cpuUsage = {
     max: process.cpuUsage(),
     current : process.cpuUsage()
@@ -38,9 +44,23 @@ const args = yargs(process.argv.slice(1)).options({
         demandOption: false,
         describe: "At startup, end a sample query to the database to check its status\n\t- \"none\" : no checking, default option\n\t- \"no-crash\" : check but does not crash\n\t- \"strict\" : check and crashes if it fails",
         type: "string"
+    },
+    "loglevel": {
+        choices: LEVELS,
+        default: "INFO",
+        demandOption: false,
+        describe: "Defines the log level. It can be either FATAL, ERROR, WARN, INFO, DEBUG or TRACE",
+        type: "string"
+    },
+    "l": {
+        alias: "logs",
+        default: [],
+        demandOption: false,
+        describe: "Defines files to append logs into, defaults to the standart input",
+        type: "array"
     }
-    // TODO logging here
 }).parseSync();
+
 
 const options: CorsOptions = {origin: '*'}
 app.use(cors(options));
@@ -79,23 +99,6 @@ app.get("/health", async (req: Request, res: Response) => {
     }
 
 })
-
-// app.get("/graphs", jsonparse, (req: any, res: any) => {
-//     if (!req.body.nodes || req.body.nodes.length < 1) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-//     else sparqlclient.query.select(Queries.getGraphFromEntity(req.body.nodes[0])).then((data: RFR.GraphResults[] ) => {
-//         res.status(200).send(data)
-//     }).catch((err: any) => res.status(404).send(err))
-// })
-
-// app.get("/nodes", jsonparse, (req: any, res: any) => {
-//     if (!req.body.graph || !req.body.limit) res.status(404).send({message: "please read the /docs route to see how to use this route"})
-//     else {
-//         RDFGraph.getFromGraph(req.body.graph, req.body.limit).then((data: RFR.TripleResult[]) => {
-//             res.status(200).send(data)
-//         }).catch(() => res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?"}))
-//     }
-// })
-
 
 app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
     const depth: number = parseInt(req.url.split('/').slice(-1)[0], 10);
@@ -219,26 +222,22 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
     }
 })
 
-// app.get(/\/depth/, jsonparse, (req: any, res: any) => {
-//     const start: string = req.body.start;
-//     const graph: any = RDFGraph.depthFirstSearch(RDFGraph.graph, start, false)
-//     if (!graph) res.status(400).send({message: 'subgraph could not be processed'})
-//     else res.status(200).send(graph)
-// })
 
 app.listen(PORT, () => {
-    console.log('\x1b[32m%s\x1b[0m' ,`Server started at port ${PORT}`);
+    Logger.log(`Server started at port ${PORT}`, LogLevel.INFO);
+
+    (args.l.length === 0) ? Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
+    : Logger.init(args.l.map(file => createWriteStream(file, {encoding: "utf-8", flags: "a"})), LEVELS.indexOf(args.loglevel));
 
     if (args.c !== "none") {
-
-        console.log('\x1b[33m%s\x1b[0m', `Sending query to check endpoint's status...`);
+        Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
 
         client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
-            console.log('\x1b[32m%s\x1b[0m', `Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`)
+            Logger.log(`Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`, LogLevel.INFO)
         }).catch((err: string) => {
-            console.log('\x1b[31m%s\x1b[0m', `Could not reach endpoint ${process.env.SPARQL_ADDRESS}`)
+            Logger.log(`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`, LogLevel.WARN)
             if (args.c === "strict") {
-                console.log(err)
+                Logger.log(err.toString(), LogLevel.FATAL)
                 process.exit(1)
             }
         });
