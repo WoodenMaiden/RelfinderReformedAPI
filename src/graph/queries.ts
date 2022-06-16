@@ -1,4 +1,5 @@
 import { QueryOptions }  from "RFR"
+import { args } from "../utils/args"
 
 abstract class Queries /*implements QueryObject*/ {
 
@@ -11,11 +12,11 @@ abstract class Queries /*implements QueryObject*/ {
     };
 
     static getAll(opt: QueryOptions): string {
-        const ExclClss: string[] = (!opt.excludedClasses)? process.env.EXCLUDED_CLASSES.split(' '): opt.excludedClasses;
-        const InclClss: string[] = (!opt.includedClasses)? process.env.INCLUDED_CLASSES.split(' '): opt.includedClasses;
-        const grph: string[] = (!opt.graphs)? process.env.INCLUDED_GRAPHS.split(' '): opt.graphs;
-        const ExclNS: string[] = (!opt.excludedNamespaces)? process.env.EXCLUDED_NAMESPACES.split(' '): opt.excludedNamespaces;
-        const InclNS: string[] = (!opt.includedNamespaces)? process.env.INCLUDED_NAMESPACES.split(' '): opt.includedNamespaces;
+        const ExclClss: string[] =  opt.excludedClasses ?? args["excluded-classes"];
+        const InclClss: string[] = opt.includedClasses ?? args["included-classes"];
+        const grph: string[] = opt.graphs ?? args["included-classes"];
+        const ExclNS: string[] = opt.excludedNamespaces ?? args["excluded-namespaces"];
+        const InclNS: string[] = opt.includedNamespaces ?? args["included-namespaces"];
         const offset: number = (!opt.offset === undefined || !opt.offset === null || opt.offset < 0 )? 0: opt.offset;
         const limit: number = (!opt.limit === undefined || !opt.limit === null || opt.limit < 0 )? 10000: opt.limit;
 

@@ -1,3 +1,11 @@
+process.argv = [
+    '/usr/bin/node',
+    '/some/path/to/the/project/that/isnt/used/by/jest',
+    '--loglevel',
+    'FATAL',
+    'http://localhost:8888/sparql'
+]
+
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";

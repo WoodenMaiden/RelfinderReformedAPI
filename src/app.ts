@@ -5,7 +5,6 @@ import express from 'express'
 import bodyParser from 'body-parser'
 
 import cors, {CorsOptions} from 'cors';
-import yargs from 'yargs';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
 import {bidirectional} from 'graphology-shortest-path/unweighted';
@@ -14,6 +13,7 @@ import { Request, Response } from 'express';
 
 import {LogLevel} from "RFR"
 
+import { args, LEVELS } from "./utils/args";
 import client from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
@@ -23,8 +23,6 @@ import Logger from './utils/logger';
 const jsonparse = bodyParser.json()
 const app = express()
 
-const PORT: number = parseInt(process.env.RFR_PORT, 10) || 80;
-const LEVELS: string[] = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
 
 const cpuUsage = {
     max: process.cpuUsage(),
@@ -34,33 +32,6 @@ const memoryUsage = {
     max: process.memoryUsage().heapUsed,
     current: process.memoryUsage().heapUsed
 }
-
-// arguments
-const args = yargs(process.argv.slice(1)).options({
-    "c": {
-        alias: "check-connection",
-        choices: ["none", "no-crash", "strict"],
-        default: "none",
-        demandOption: false,
-        describe: "At startup, end a sample query to the database to check its status\n\t- \"none\" : no checking, default option\n\t- \"no-crash\" : check but does not crash\n\t- \"strict\" : check and crashes if it fails",
-        type: "string"
-    },
-    "loglevel": {
-        choices: LEVELS,
-        default: "INFO",
-        demandOption: false,
-        describe: "Defines the log level. It can be either FATAL, ERROR, WARN, INFO, DEBUG or TRACE",
-        type: "string"
-    },
-    "l": {
-        alias: "logs",
-        default: [],
-        demandOption: false,
-        describe: "Defines files to append logs into, defaults to the standart input",
-        type: "array"
-    }
-}).parseSync();
-
 
 const options: CorsOptions = {origin: '*'}
 app.use(cors(options));
@@ -223,17 +194,17 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
 })
 
 
-app.listen(PORT, () => {
-    Logger.log(`Server started at port ${PORT}`, LogLevel.INFO);
+app.listen(args.p, () => {
+    if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
+    else Logger.init(args.l.map(file => createWriteStream(file, {encoding: "utf-8", flags: "a"})), LEVELS.indexOf(args.loglevel));
 
-    (args.l.length === 0) ? Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
-    : Logger.init(args.l.map(file => createWriteStream(file, {encoding: "utf-8", flags: "a"})), LEVELS.indexOf(args.loglevel));
+    Logger.log(`Server started at port ${args.p}`, LogLevel.INFO);
 
     if (args.c !== "none") {
         Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
 
         client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
-            Logger.log(`Endpoint ${process.env.SPARQL_ADDRESS} is reachable!\nRFR is now usable!`, LogLevel.INFO)
+            Logger.log(`Endpoint ${process.env.SPARQL_ADDRESS} is reachable! RFR is now usable!`, LogLevel.INFO)
         }).catch((err: string) => {
             Logger.log(`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`, LogLevel.WARN)
             if (args.c === "strict") {

@@ -2,7 +2,7 @@ import { WriteStream } from "fs";
 import { LogLevel } from "RFR";
 
 export default class Logger {
-    private static outputs: (WriteStream|NodeJS.WriteStream)[] = [];
+    private static outputs: (WriteStream|NodeJS.WriteStream)[] = [process.stdout];
     private static level: LogLevel = LogLevel.FATAL
 
     public static log(toPrint: string, level: LogLevel | number) {
@@ -11,7 +11,7 @@ export default class Logger {
         if (level <= Logger.level) {
             Logger.outputs.forEach(strm => strm.write(
                 `[${LEVELSTR[level]}]-(${NOW.getDate()}/${NOW.getMonth()}/${NOW.getFullYear()} ` +
-                `${NOW.getHours()}h${NOW.getMinutes()}m${NOW.getSeconds()}s): ${toPrint.toString()}\n`
+                `${NOW.getHours()}h${NOW.getMinutes()}m${NOW.getSeconds()}s): ${toPrint}\n`
             ))
         }
     }

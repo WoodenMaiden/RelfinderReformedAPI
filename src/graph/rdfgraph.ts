@@ -223,7 +223,7 @@ class RDFGraph {
      * @param startNode node to start from
      * @param stacking psecifies wheter or not to fill the stack
      */
-    private depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
+    public depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
 
         if (baseGraph.outNeighbors(startNode) === []) return null;
 

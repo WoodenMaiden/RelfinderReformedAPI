@@ -6,4 +6,5 @@ README.md
 cloned_repos
 dist
 tests
+*.env
 *.log
