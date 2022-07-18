@@ -1,14 +1,43 @@
 process.argv = [
-    '/usr/bin/node',
-    '/some/path/to/the/project/that/isnt/used/by/jest',
-    '--loglevel',
-    'FATAL',
-    'http://localhost:8888/sparql'
+    '/I/like/animals',
+    '/especially/cats/and/seals', // It won't be read
+    'http://localhost:8888/sparql',
+    '--excluded-namespaces',
+    'http://identifiers.org',
+    'no-crash',
 ]
 
+import Logger from '../src/utils/logger';
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";
+
+
+describe('Logs', () => {
+    let writeSpy: any
+    const toLog = "some log we're trying to write"
+
+    beforeEach(() => {
+        Logger.init([process.stdout], 4)
+        jest.clearAllMocks()
+        writeSpy = jest.spyOn(process.stdout, "write")
+    })
+
+    it('should log something with the same log level', () => {
+        Logger.log(toLog, 4)
+        expect(writeSpy.mock.calls[0][0]).toContain(toLog)
+    })
+
+    it('should log something with a lower log level', () => {
+        Logger.log(toLog, 0)
+        expect(writeSpy.mock.calls[0][0]).toContain(toLog)
+    })
+
+    it("shouldn't log something with a higher log level", () => {
+        Logger.log(toLog, 5)
+        expect(writeSpy).not.toHaveBeenCalled()
+    })
+})
 
 
 describe('RDFGraph', () => {
@@ -103,5 +132,21 @@ describe('RDFGraph', () => {
 
             expect(sccs).toEqual(expectedOutput)
         })
+    })
+})
+
+
+describe('Graph CLI options', () => {
+    const node1 = 'http://purl.uniprot.org/uniprot/M7Y4A4'
+    const node2 = 'http://purl.uniprot.org/uniprot/M7Y7E2'
+
+    let rdf: RDFGraph
+
+    beforeAll(async () => {
+        rdf = await RDFGraph.createFromEntities([node1, node2], 3)        
+    })
+
+    it("shouldn't have any node starting by http://identifiers.org", () => {
+        //TODO
     })
 })
