@@ -7,20 +7,25 @@ process.argv = [
     'no-crash',
 ]
 
+import { createWriteStream } from 'fs';
+
 import Logger from '../src/utils/logger';
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";
+import { args } from '../src/utils/args';
 
 
 describe('Logs', () => {
     let writeSpy: any
     const toLog = "some log we're trying to write"
+    const stream = createWriteStream('/dev/null', {flags: 'a'})
+
+    Logger.init([stream], 4)
 
     beforeEach(() => {
-        Logger.init([process.stdout], 4)
         jest.clearAllMocks()
-        writeSpy = jest.spyOn(process.stdout, "write")
+        writeSpy = jest.spyOn(stream, "write")
     })
 
     it('should log something with the same log level', () => {
