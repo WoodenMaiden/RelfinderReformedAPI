@@ -4,8 +4,12 @@ process.argv = [
     'http://localhost:8888/sparql',
     '--excluded-namespaces',
     'http://identifiers.org',
+    '--included-namespaces',
+    'http://purl.uniprot.org/',
+    'http://purl.obolibrary.org/obo',
+    '-c',
     'no-crash',
-]
+] // this will be parsed by the imports below
 
 import { createWriteStream } from 'fs';
 
@@ -13,7 +17,6 @@ import Logger from '../src/utils/logger';
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";
-import { args } from '../src/utils/args';
 
 
 describe('Logs', () => {
@@ -41,6 +44,10 @@ describe('Logs', () => {
     it("shouldn't log something with a higher log level", () => {
         Logger.log(toLog, 5)
         expect(writeSpy).not.toHaveBeenCalled()
+    })
+
+    afterAll(() => {
+        stream.destroy()
     })
 })
 
@@ -73,13 +80,13 @@ describe('RDFGraph', () => {
 
     describe('Constuction', () => {
         it("shouldn't create a RDF graph", async () => {
-            const rdf: RDFGraph = await RDFGraph.createFromEntities(["a", "b"], 2)
+            const rdf: RDFGraph = await RDFGraph.createFromEntities(["a", "b"], 1)
             expect(rdf.graph.nodes().length).toBe(0)
             expect(rdf.invertedGraph.nodes().length).toBe(0)
         })
 
         it("should create a RDF graph", async () => {
-            const rdf: RDFGraph = await RDFGraph.createFromEntities([node1, node2], 2)
+            const rdf: RDFGraph = await RDFGraph.createFromEntities([node1, node2], 1)
             expect(rdf.graph.nodes().length).toBeGreaterThanOrEqual(1)
             expect(rdf.invertedGraph.nodes().length).toBeGreaterThanOrEqual(1)
         })
@@ -148,10 +155,34 @@ describe('Graph CLI options', () => {
     let rdf: RDFGraph
 
     beforeAll(async () => {
-        rdf = await RDFGraph.createFromEntities([node1, node2], 3)        
+        rdf = await RDFGraph.createFromEntities([node1, node2], 3)
     })
 
-    it("shouldn't have any node starting by http://identifiers.org", () => {
-        //TODO
+    it("shouldn't have any node starting by http://identifiers.org/", () => {
+        const excludedNodes: string[] = rdf.graph.findNode((nodeName: string) => 
+            nodeName.startsWith("http://identifiers.org") 
+        )
+
+        expect(excludedNodes).toBeUndefined()
+    })
+
+    it ('should have only nodes starting with http://purl.uniprot.org/ or http://purl.obolibrary.org/obo', () => {
+        const excludedNodes: string[] = rdf.graph.findNode((nodeName: string) => 
+            !nodeName.startsWith("http://purl.uniprot.org/") && !nodeName.startsWith("http://purl.obolibrary.org/obo")
+        )
+
+        expect(excludedNodes).toBeUndefined()
+    })
+
+    it.skip('should have only nodes from certain graphs', () => {
+
+    })
+
+    it.skip('should only contain nodes having a certain class', () => {
+
+    })
+
+    it.skip("shouldn't contain nodes having a certain class", () => {
+
     })
 })
