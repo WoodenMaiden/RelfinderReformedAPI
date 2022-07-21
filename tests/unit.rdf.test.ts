@@ -9,6 +9,9 @@ process.argv = [
     'http://purl.obolibrary.org/obo',
     '-c',
     'no-crash',
+    '--included-graphs',
+    'http://www.southgreen.fr/agrold/go',
+    'http://www.southgreen.fr/agrold/protein.annotations'
 ] // this will be parsed by the imports below
 
 import { createWriteStream } from 'fs';
@@ -17,6 +20,8 @@ import Logger from '../src/utils/logger';
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";
+import client from '../src/graph/endpoint'
+import Queries from '../src/graph/queries';
 
 
 describe('Logs', () => {
@@ -125,8 +130,8 @@ describe('RDFGraph', () => {
 
         const igraph = MultiDirectedGraph.from(graph.export()) 
         igraph.clearEdges()
-        graph.forEachDirectedEdge((edge: string, attributes: Attributes, 
-                                    source: string, target: string) => {
+        graph.forEachDirectedEdge(
+            (edge: string, attributes: Attributes, source: string, target: string) => {
             igraph.addDirectedEdgeWithKey(edge, target, source, attributes)
         })
 
@@ -147,15 +152,39 @@ describe('RDFGraph', () => {
     })
 })
 
+describe('SPARQL Query Generator', () => {
+    it('should get all from multiple graphs', () => {
+        const query = Queries.getAll({graphs: ["http://graph1", "http://graph2"]})
+
+        expect(query).toMatch(/FROM \<http\:\/\/graph1\> FROM <http:\/\/graph2>/i)
+    })
+})
 
 describe('Graph CLI options', () => {
     const node1 = 'http://purl.uniprot.org/uniprot/M7Y4A4'
     const node2 = 'http://purl.uniprot.org/uniprot/M7Y7E2'
 
+    type GraphObj = { //since I can't import my types
+        graph: {
+            value: string
+        }
+    }
+
     let rdf: RDFGraph
+    let nodesAndGraph: Map<string, string[]>
 
     beforeAll(async () => {
+        jest.setTimeout(10000)
         rdf = await RDFGraph.createFromEntities([node1, node2], 3)
+
+        const promisedGraphs: GraphObj[][] = await Promise.all(rdf.graph.nodes().map(
+            (n: string) => client.query.select(Queries.getGraphFromEntity(n))
+        ))
+
+        //this associates a node and the graphs it belongs to
+        nodesAndGraph = new Map(rdf.graph.nodes().map(
+            (elt: string, key: number) => [elt, promisedGraphs[key].map(e => e.graph.value)]
+        ))
     })
 
     it("shouldn't have any node starting by http://identifiers.org/", () => {
@@ -174,8 +203,48 @@ describe('Graph CLI options', () => {
         expect(excludedNodes).toBeUndefined()
     })
 
-    it.skip('should have only nodes from certain graphs', () => {
+    it('should have only nodes related to graphs http://www.southgreen.fr/agrold/protein.annotations and http://www.southgreen.fr/agrold/go', () => {
+        // It can happen that a node is not in the graph but is related to it via its subject or object
+        // So for each node we check :
+        //      - (1) if it is included in at least one of said graphs
+        //      else
+        //      - (2) if its subject/object is in the graphs
+        // If neither of these statements are true then the node shouldn't appear
+        const unwantedNodes: string[] = []
 
+        
+        function isInGraph(node: string, map: Map<string, string[]>, rdfgraph: RDFGraph): boolean {
+            const wantedGraphs = [
+                'http://www.southgreen.fr/agrold/protein.annotations',
+                'http://www.southgreen.fr/agrold/go'
+            ]
+
+            const nodeGraphs = map.get(node)
+            if (!nodeGraphs) return false
+
+            // (1)
+            for(const g of nodeGraphs) 
+                if (wantedGraphs.includes(g)) return true;
+
+            // (2)
+            let check2 = false
+            rdfgraph.graph.forEachNeighbor(node, (neighbor: string) => {
+                const neighborGraphs = map.get(neighbor)
+                if (neighborGraphs) 
+		            for(const g of neighborGraphs) 
+		                if (wantedGraphs.includes(g)) check2 = true
+            })
+
+            return check2
+        }
+        
+        nodesAndGraph.forEach(
+            (val: string[], key: string, that: Map<string, string[]>) => {
+                if (!isInGraph(key, that, rdf)) unwantedNodes.push(key)
+            }
+        )
+
+        expect(unwantedNodes.length).toEqual(0)
     })
 
     it.skip('should only contain nodes having a certain class', () => {

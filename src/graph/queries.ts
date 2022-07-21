@@ -14,7 +14,7 @@ abstract class Queries /*implements QueryObject*/ {
     static getAll(opt?: QueryOptions): string {
         const parsedOpt = this.parseQueryOptions(opt)
 
-        return `SELECT distinct ?s ?p ?o ${(parsedOpt.graphs) ? "" : `FROM <${parsedOpt.graphs.join('> FROM <')}>`} {
+        return `SELECT distinct ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} {
     ?s ?p ?o.
     ${(parsedOpt.excludedClasses) ? `FILTER (?s NOT IN (<${parsedOpt.excludedClasses.join("> <")}>))` : ""}
     ${(parsedOpt.includedClasses) ? `FILTER (?s IN (<${parsedOpt.includedClasses.join("> <")}>))` : ""}
