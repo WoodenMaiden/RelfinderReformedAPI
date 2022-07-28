@@ -14,7 +14,7 @@ import { Request, Response } from 'express';
 import {LogLevel} from "RFR"
 
 import { args, LEVELS } from "./utils/args";
-import client from './graph/endpoint'
+import client, {endpoint} from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
@@ -233,9 +233,9 @@ app.listen(args.p, () => {
         Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
 
         client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
-            Logger.log(`Endpoint ${process.env.SPARQL_ADDRESS} is reachable! RFR is now usable!`, LogLevel.INFO)
+            Logger.log(`Endpoint ${endpoint} is reachable! RFR is now usable!`, LogLevel.INFO)
         }).catch((err: string) => {
-            Logger.log(`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`, LogLevel.WARN)
+            Logger.log(`Could not reach endpoint ${endpoint}`, LogLevel.WARN)
             if (args.c === "strict") {
                 Logger.log(err.toString(), LogLevel.FATAL)
                 process.exit(1)
