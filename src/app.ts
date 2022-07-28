@@ -74,7 +74,7 @@ app.get("/health", async (req: Request, res: Response) => {
 app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
     const depth: number = parseInt(req.url.split('/').slice(-1)[0], 10);
     if (!req.body.nodes || req.body.nodes.length < 2)
-        res.status(404).send({message: "please read the /docs route to see how to use this route"})
+        res.status(400).send({message: "please read the /docs route to see how to use this route"})
 
     else {
 
@@ -193,6 +193,21 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
     }
 })
 
+app.post("/labels", jsonparse, async (req: Request, res: Response) => {
+    if (!req.body.node && typeof req.body.node !== "string")
+        res.status(400).send({message: "please read the /docs route to see how to use this route"});
+    else {
+        try {
+            const labels = (req.body.node.match(/\w+:\/\/.*/i))
+                ? await client.query.select(Queries.getLabels(req.body.node))
+                : await client.query.select(Queries.getByLabel(req.body.node))
+
+            res.status(200).send({ labels })
+        } catch (exception: unknown) {
+            res.status(500).send(exception)
+        }
+    }
+})
 
 app.listen(args.p, () => {
     if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
