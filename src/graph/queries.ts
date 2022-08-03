@@ -50,7 +50,7 @@ abstract class Queries /*implements QueryObject*/ {
         return toreturn.join('|')
     }
 
-    
+
     private static parseQueryOptions(opt: QueryOptions): QueryOptions {
 
         // will fuse all collections given as arguments into one with unique vamues, if all are undefined returns undefined
@@ -60,7 +60,7 @@ abstract class Queries /*implements QueryObject*/ {
             collections.forEach(subCollection => {
                 if (subCollection) {
                     toReturn = [...toReturn, ...subCollection].filter(
-                        (elt, index, that) => elt != undefined && that.lastIndexOf(elt) === index
+                        (elt, index, that) => elt !== undefined && that.lastIndexOf(elt) === index
                     )
                 }
             })
