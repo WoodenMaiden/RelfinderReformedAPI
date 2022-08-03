@@ -65,7 +65,8 @@ abstract class Queries /*implements QueryObject*/ {
                 }
             })
 
-            return (toReturn.length <= 0) ? undefined : toReturn;
+            // if both are null they will return this array : [null]
+            return (toReturn.length <= 0 || (toReturn.length === 1 && toReturn[0] === null)) ? undefined : toReturn;
         }
 
         return {

@@ -2,6 +2,8 @@ process.argv = [
     '/I/like/animals',
     '/especially/cats/and/seals', // It won't be read
     'http://localhost:8888/sparql',
+    '--included-graphs',
+    'http://localhost/data'
 ] // this will be parsed by the imports below
 
 
