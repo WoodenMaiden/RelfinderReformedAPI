@@ -3,7 +3,7 @@ process.argv = [
     '/especially/cats/and/seals', // It won't be read
     'http://localhost:8888/sparql',
     '--excluded-namespaces',
-    'http://identifiers.org',
+    'http://games.local/leagueoflegends/items',
     '--included-namespaces',
     'http://purl.uniprot.org/',
     'http://purl.obolibrary.org/obo',
@@ -18,8 +18,8 @@ import client from '../src/graph/endpoint'
 import Queries from '../src/graph/queries';
 
 describe('Graph CLI options', () => {
-    const node1 = 'http://purl.uniprot.org/uniprot/M7Y4A4'
-    const node2 = 'http://purl.uniprot.org/uniprot/M7Y7E2'
+    const node1: string = "http://people.local/someUser"
+    const node2: string = "http://people.local/yann"
 
     type GraphObj = { //since I can't import my types
         graph: {
@@ -44,15 +44,15 @@ describe('Graph CLI options', () => {
         ))
     })
 
-    it("shouldn't have any node starting by http://identifiers.org/", () => {
+    it("shouldn't have any node starting by http://games.local/leagueoflegends/items", () => {
         const excludedNodes: string[] = rdf.graph.findNode((nodeName: string) => 
-            nodeName.startsWith("http://identifiers.org") 
+            nodeName.startsWith("http://games.local/leagueoflegends/items") 
         )
 
         expect(excludedNodes).toBeUndefined()
     })
 
-    it ('should have only nodes starting with http://purl.uniprot.org/ or http://purl.obolibrary.org/obo', () => {
+    it.skip('should have only nodes starting with http://purl.uniprot.org/ or http://purl.obolibrary.org/obo', () => {
         const excludedNodes: string[] = rdf.graph.findNode((nodeName: string) => 
             !nodeName.startsWith("http://purl.uniprot.org/") && !nodeName.startsWith("http://purl.obolibrary.org/obo")
         )
@@ -60,7 +60,7 @@ describe('Graph CLI options', () => {
         expect(excludedNodes).toBeUndefined()
     })
 
-    it('should have only nodes related to graphs http://www.southgreen.fr/agrold/protein.annotations and http://www.southgreen.fr/agrold/go', () => {
+    it.skip('should have only nodes related to graphs http://www.southgreen.fr/agrold/protein.annotations and http://www.southgreen.fr/agrold/go', () => {
         // It can happen that a node is not in the graph but is related to it via its subject or object
         // So for each node we check :
         //      - (1) if it is included in at least one of said graphs

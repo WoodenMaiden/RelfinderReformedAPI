@@ -12,8 +12,8 @@ import Queries from '../src/graph/queries';
 
 
 describe('RDFGraph', () => {
-    const node1: string = "http://purl.uniprot.org/uniprot/M7Y4A4"
-    const node2: string = "http://purl.obolibrary.org/obo/GO_0030599"
+    const node1: string = "http://people.local/someUser"
+    const node2: string = "http://people.local/yann"
 
 
     //took this graph https://youtu.be/Jb1XlDsr46o for dfs

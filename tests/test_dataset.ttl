@@ -1,0 +1,45 @@
+@prefix lol: <http://games.local/leagueoflegends#> .
+@prefix ppl: <http://people.local#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix wf: <http://games.local/warframe#> .
+
+<http://people.local/yann> ppl:name "Yann" .
+<http://people.local/yann> rdfs:label "Yann" .
+<http://people.local/yann> ppl:username "WoodenMaiden" .
+<http://people.local/someUser> ppl:name "user" .
+<http://people.local/someUser> rdfs:label "user" .
+<http://people.local/someUser> ppl:username "user" .
+<http://people.local/someUser> ppl:hasfriend <http://people.local/yann> .
+<http://people.local/yann> ppl:hasfriend <http://people.local/someUser> .
+
+<http://people.local/yann> ppl:plays <http://games.local/leagueoflegends> .
+<http://people.local/yann> ppl:mains <http://games.local/leagueoflegends/champions/ryze> .
+<http://people.local/yann> ppl:mains <http://games.local/leagueoflegends/champions/yorick> .
+<http://games.local/leagueoflegends/champions/ryze> lol:builds <http://games.local/leagueoflegends/items/everfrost>.
+<http://games.local/leagueoflegends/champions/ryze> lol:builds <http://games.local/leagueoflegends/items/archangelstaff>.
+<http://games.local/leagueoflegends/champions/ryze> lol:builds <http://games.local/leagueoflegends/items/zonhyahourglass>.
+<http://games.local/leagueoflegends/champions/ryze> lol:counters <http://games.local/leagueoflegends/champions/yone> .
+<http://games.local/leagueoflegends/champions/ryze> lol:counters <http://games.local/leagueoflegends/champions/yorick> .
+<http://games.local/leagueoflegends/champions/ryze> lol:counteredby <http://games.local/leagueoflegends/champions/cassiopea> .
+
+<http://people.local/someUser> ppl:plays <http://games.local/leagueoflegends> .
+<http://people.local/someUser> ppl:mains <http://games.local/leagueoflegends/champions/yorick> .
+<http://games.local/leagueoflegends/champions/yorick> lol:builds <http://games.local/leagueoflegends/items/trinity> .
+<http://games.local/leagueoflegends/champions/yorick> lol:builds <http://games.local/leagueoflegends/items/hullbreaker> .
+<http://games.local/leagueoflegends/champions/yorick> lol:builds <http://games.local/leagueoflegends/items/steraksgage> .
+<http://games.local/leagueoflegends/champions/yorick> lol:counteredby <http://games.local/leagueoflegends/champions/irelia> .
+<http://games.local/leagueoflegends/champions/yorick> lol:counteredby <http://games.local/leagueoflegends/champions/ryze> .
+<http://games.local/leagueoflegends/champions/yorick> lol:counters <http://games.local/leagueoflegends/champions/darius> .
+
+
+<http://games.local/leagueoflegends> lol:release "2009" .
+<http://people.local/yann> ppl:plays <http://games.local/warframe> .
+<http://people.local/yann> ppl:uses <http://games.local/warframe/weapons/igniswrath> .
+<http://people.local/yann> ppl:uses <http://games.local/warframe/weapons/brakkkuva> .
+<http://people.local/yann> ppl:mains <http://games.local/warframe/frame/garuda> .
+<http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/dreadmirror> .
+<http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/bloodaltar> .
+<http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/bloodletting> .
+<http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/seekingtalons> .
