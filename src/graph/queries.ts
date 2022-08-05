@@ -1,23 +1,19 @@
 import { QueryOptions }  from "RFR"
 import { args } from "../utils/args"
 
-abstract class Queries /*implements QueryObject*/ {
-
-    static base(): string {
-        return `BASE <http://www.southgreen.fr/agrold/>`
-    };
+abstract class Queries {
 
     static prefixes(): string {
-        return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>PREFIX obo:<http://purl.obolibrary.org/obo/>PREFIX vocab:<vocabulary/>`
+        return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>`
     };
 
     static getAll(opt?: QueryOptions): string {
         const parsedOpt = this.parseQueryOptions(opt)
 
-        return `SELECT distinct ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} {
+        return `${this.prefixes()} SELECT distinct ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} {
     ?s ?p ?o.
-    ${(parsedOpt.excludedClasses) ? `FILTER (?s NOT IN (<${parsedOpt.excludedClasses.join("> <")}>))` : ""}
-    ${(parsedOpt.includedClasses) ? `FILTER (?s IN (<${parsedOpt.includedClasses.join("> <")}>))` : ""}
+    ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}` : ""}
+    ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
     ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
     ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
 } offset ${parsedOpt.offset} limit ${parsedOpt.limit}`
@@ -32,9 +28,9 @@ abstract class Queries /*implements QueryObject*/ {
 
         return `SELECT ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} WHERE {
             ?s ?p ?o.
-            FILTER (STR(?s) = "${subject}")
-            ${(parsedOpt.excludedClasses) ? `FILTER (?o NOT IN (<${parsedOpt.excludedClasses.join("> <")}>))`: ""}
-            ${(parsedOpt.includedClasses) ? `FILTER (?o IN (<${parsedOpt.includedClasses.join("> <")}>))` : ""}
+            FILTER(?s IN (<${subject}>))
+            ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}`: ""}
+            ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
             ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
             ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
         }`
@@ -48,6 +44,13 @@ abstract class Queries /*implements QueryObject*/ {
         for (let i: number = 0; i < toreturn.length; ++i)
             toreturn[i] = `(^${toreturn[i]}*)`;
         return toreturn.join('|')
+    }
+
+    private static generateClassesFilter(strings: string[]) {
+        const toreturn: string[] = strings
+        for (let i: number = 0; i < toreturn.length; ++i)
+            toreturn[i] = `<${toreturn[i]}>`;
+        return '(' + toreturn.join(', ') + ')'
     }
 
 

@@ -80,4 +80,4 @@
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/bloodletting> .
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/seekingtalons> .
 
-<http://irrelevant.namespace/a> <http://irrelevant.namespace/b> <http://irrelevant.namespace/c>
+<http://irrelevant.namespace/a> <http://irrelevant.namespace/b> <http://irrelevant.namespace/c> .
