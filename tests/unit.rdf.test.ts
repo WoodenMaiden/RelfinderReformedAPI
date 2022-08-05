@@ -1,19 +1,21 @@
 process.argv = [
-    '/usr/bin/node',
-    '/some/path/to/the/project/that/isnt/used/by/jest',
-    '--loglevel',
-    'FATAL',
-    'http://localhost:8888/sparql'
-]
+    '/I/like/animals',
+    '/especially/cats/and/seals', // It won't be read
+    'http://localhost:8888/sparql',
+    '--included-graphs',
+    'http://localhost/data'
+] // this will be parsed by the imports below
+
 
 import RDFGraph from '../src/graph/rdfgraph'
 import { MultiDirectedGraph } from "graphology"
 import { Attributes } from "graphology-types";
+import Queries from '../src/graph/queries';
 
 
 describe('RDFGraph', () => {
-    const node1: string = "http://purl.uniprot.org/uniprot/M7Y4A4"
-    const node2: string = "http://purl.obolibrary.org/obo/GO_0030599"
+    const node1: string = "http://people.local/someUser"
+    const node2: string = "http://people.local/yann"
 
 
     //took this graph https://youtu.be/Jb1XlDsr46o for dfs
@@ -39,13 +41,13 @@ describe('RDFGraph', () => {
 
     describe('Constuction', () => {
         it("shouldn't create a RDF graph", async () => {
-            const rdf: RDFGraph = await RDFGraph.createFromEntities(["a", "b"], 2)
+            const rdf: RDFGraph = await RDFGraph.createFromEntities(["a", "b"], 1)
             expect(rdf.graph.nodes().length).toBe(0)
             expect(rdf.invertedGraph.nodes().length).toBe(0)
         })
 
         it("should create a RDF graph", async () => {
-            const rdf: RDFGraph = await RDFGraph.createFromEntities([node1, node2], 2)
+            const rdf: RDFGraph = await RDFGraph.createFromEntities([node1, node2], 1)
             expect(rdf.graph.nodes().length).toBeGreaterThanOrEqual(1)
             expect(rdf.invertedGraph.nodes().length).toBeGreaterThanOrEqual(1)
         })
@@ -84,8 +86,8 @@ describe('RDFGraph', () => {
 
         const igraph = MultiDirectedGraph.from(graph.export()) 
         igraph.clearEdges()
-        graph.forEachDirectedEdge((edge: string, attributes: Attributes, 
-                                    source: string, target: string) => {
+        graph.forEachDirectedEdge(
+            (edge: string, attributes: Attributes, source: string, target: string) => {
             igraph.addDirectedEdgeWithKey(edge, target, source, attributes)
         })
 
@@ -103,5 +105,13 @@ describe('RDFGraph', () => {
 
             expect(sccs).toEqual(expectedOutput)
         })
+    })
+})
+
+describe('SPARQL Query Generator', () => {
+    it('should get all from multiple graphs', () => {
+        const query = Queries.getAll({graphs: ["http://graph1", "http://graph2"]})
+
+        expect(query).toMatch(/FROM \<http\:\/\/graph1\> FROM <http:\/\/graph2>/i)
     })
 })

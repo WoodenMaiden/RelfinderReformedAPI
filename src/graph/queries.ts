@@ -1,37 +1,43 @@
 import { QueryOptions }  from "RFR"
 import { args } from "../utils/args"
 
-abstract class Queries /*implements QueryObject*/ {
-
-    static base(): string {
-        return `BASE <http://www.southgreen.fr/agrold/>`
-    };
+abstract class Queries {
 
     static prefixes(): string {
-        return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>PREFIX obo:<http://purl.obolibrary.org/obo/>PREFIX vocab:<vocabulary/>`
+        return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>`
     };
 
-    static getAll(opt: QueryOptions): string {
-        const ExclClss: string[] =  opt.excludedClasses ?? args["excluded-classes"];
-        const InclClss: string[] = opt.includedClasses ?? args["included-classes"];
-        const grph: string[] = opt.graphs ?? args["included-classes"];
-        const ExclNS: string[] = opt.excludedNamespaces ?? args["excluded-namespaces"];
-        const InclNS: string[] = opt.includedNamespaces ?? args["included-namespaces"];
-        const offset: number = (!opt.offset === undefined || !opt.offset === null || opt.offset < 0 )? 0: opt.offset;
-        const limit: number = (!opt.limit === undefined || !opt.limit === null || opt.limit < 0 )? 10000: opt.limit;
+    static getAll(opt?: QueryOptions): string {
+        const parsedOpt = this.parseQueryOptions(opt)
 
-        return `SELECT distinct ?s ?p ?o ${(grph[0] === '') ? "" : `FROM <${grph.join('> FROM <')}>`} {
+        return `${this.prefixes()} SELECT distinct ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} {
     ?s ?p ?o.
-    ${(ExclClss[0] === '') ? "" : `FILTER (?s NOT IN (<${ExclClss.join("> <")}>))`}
-    ${(InclClss[0] === '') ? "" : `FILTER (?s IN (<${InclClss.join("> <")}>))`}
-    ${(ExclNS[0] === '') ? "" : `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(ExclNS)}'))`}
-    ${(InclNS[0] === '') ? "" : `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(InclNS)}'))`}
-} offset ${offset} limit ${limit}`
+    ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}` : ""}
+    ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
+    ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
+    ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
+} offset ${parsedOpt.offset} limit ${parsedOpt.limit}`
     };
 
     static getGraphFromEntity(entity: string): string {
         return `${this.prefixes()} SELECT DISTINCT ?graph WHERE { GRAPH ?graph { <${entity}> ?p ?o. }}`
     }
+
+    static getObjectsOf(subject: string, opt?: QueryOptions): string {
+        const parsedOpt = this.parseQueryOptions(opt)
+
+        return `SELECT ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} WHERE {
+            ?s ?p ?o.
+            FILTER(?s IN (<${subject}>))
+            ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}`: ""}
+            ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
+            ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
+            ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
+        }`
+    };
+
+    static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
+
 
     private static generateNamespacesRegex(strings: string[]): string {
         const toreturn: string[] = strings
@@ -40,11 +46,43 @@ abstract class Queries /*implements QueryObject*/ {
         return toreturn.join('|')
     }
 
-    static getObjectsOf(subject: string/*, opt: QueryOptions*/): string {
-        return `SELECT ?s ?p ?o WHERE { ?s ?p ?o. FILTER (STR(?s) = "${subject}")}`
-    };
+    private static generateClassesFilter(strings: string[]) {
+        const toreturn: string[] = strings
+        for (let i: number = 0; i < toreturn.length; ++i)
+            toreturn[i] = `<${toreturn[i]}>`;
+        return '(' + toreturn.join(', ') + ')'
+    }
 
-    static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
+
+    private static parseQueryOptions(opt: QueryOptions): QueryOptions {
+
+        // will fuse all collections given as arguments into one with unique vamues, if all are undefined returns undefined
+        function fuseOrUndefined<T>(...collections: T[][]): T[] | undefined {
+
+            let toReturn: T[] = []
+            collections.forEach(subCollection => {
+                if (subCollection) {
+                    toReturn = [...toReturn, ...subCollection].filter(
+                        (elt, index, that) => elt !== undefined && that.lastIndexOf(elt) === index
+                    )
+                }
+            })
+
+            // if both are null they will return this array : [null]
+            return (toReturn.length <= 0 || (toReturn.length === 1 && toReturn[0] === null)) ? undefined : toReturn;
+        }
+
+        return {
+            graphs: fuseOrUndefined(opt?.graphs, args["included-graphs"]),
+            excludedClasses: fuseOrUndefined(opt?.excludedClasses, args["excluded-classes"]),
+            includedClasses: fuseOrUndefined(opt?.includedClasses, args["included-classes"]),
+            excludedNamespaces: fuseOrUndefined(opt?.excludedNamespaces, args["excluded-namespaces"]),
+            includedNamespaces: fuseOrUndefined(opt?.includedNamespaces, args["included-namespaces"]),
+            offset: (opt?.offset !== undefined && opt?.offset !== null)? opt.offset: 0,
+            limit: (opt?.limit !== undefined && opt?.limit !== null)? opt.limit: 10000
+        }
+
+    }
 }
 
 export default Queries

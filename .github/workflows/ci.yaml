@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, tests ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, tests ]
 
 jobs:
   build:
@@ -38,8 +38,12 @@ jobs:
           key: npm-${{ hashFiles('package-lock.json') }}
           restore-keys: npm-
 
-    - name: Virtuoso 
-      uses: WoodenMaiden/sparql-virtuoso-action@beta1.0.0
+    - name: Start a Virtuoso instance and fill it
+      uses: WoodenMaiden/sparql-virtuoso-action@v0.1.0
+      with:
+        publish-db-port: 2222
+        publish-http-server-port: 8888
+        triples: ./tests/test_dataset.ttl
 
     - run: npm ci --ignore-scripts
     - run: npm run build --if-present

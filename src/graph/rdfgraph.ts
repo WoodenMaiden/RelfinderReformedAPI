@@ -6,7 +6,8 @@ import {Literal} from "RFR";
 
 import queries from'./queries'
 import client from './endpoint'
-
+import Logger from "../utils/logger";
+import { LogLevel } from "RFR";
 
 class RDFGraph {
 
@@ -79,7 +80,7 @@ class RDFGraph {
         return new Promise<RFR.TripleResult[]> ((resolve, reject) => {
             client.query.select(queries.countTriplesOfGraph(graph)).then((count: any[]) => {
                 if (count[0].counter.value < 1) {
-                    console.log('\x1b[31m%s\x1b[0m', 'No triples!')
+                    Logger.log('No triples!', LogLevel.DEBUG)
                     reject([]);
                 }
                 let toResolve: RFR.TripleResult[] = []
@@ -96,16 +97,16 @@ class RDFGraph {
                     for (const c of promisesArray){
                         toResolve = toResolve.concat(c);
                     }
-                    console.log('\x1b[32m%s\x1b[0m', 'Fetched nodes successfully')
+                    Logger.log('Fetched nodes successfully', LogLevel.DEBUG)
                     resolve(toResolve)
                 }).catch((err) =>{
-                    console.log('\x1b[31m%s\x1b[0m', `Error: ${err}`)
+                    Logger.log(`Error: ${err}`, LogLevel.DEBUG)
                     reject([]);
                 })
 
 
             }).catch((err: any) =>{
-                console.log('\x1b[31m%s\x1b[0m', err)
+                Logger.log(JSON.stringify(err), LogLevel.DEBUG)
                 reject([]);
             })
         });
@@ -149,7 +150,7 @@ class RDFGraph {
 
         return new Promise<RDFGraph>((resolve, reject) => {
             if (inputEntities.length < 2) {
-                console.log('\x1b[31m%s\x1b[0m' ,`Not enough entities, expected 2 or more, got ${inputEntities.length}`)
+                Logger.log(`Not enough entities, expected 2 or more, got ${inputEntities.length}`, LogLevel.DEBUG)
                 reject(new RDFGraph())
             }
 
@@ -199,17 +200,17 @@ class RDFGraph {
                         })
                     }
 
-                    console.log('\x1b[94m%s\x1b[0m', `graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`)
+                    Logger.log(`graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`, LogLevel.DEBUG)
                     resolve(toResolve)
 
                 }).catch(err => {
-                    console.log(err)
-                    console.log('\x1b[31m%s\x1b[0m' ,`Could not go further does your entities have neighbours ? `)
+                    Logger.log(err, LogLevel.DEBUG)
+                    Logger.log(`Could not go further does your entities have neighbours ?`, LogLevel.DEBUG)
                     reject(new RDFGraph())
                 });
             }).catch(err => {
-                console.log(err)
-                console.log('\x1b[31m%s\x1b[0m' ,`Could not get input's neighbours, do they exist ?`)
+                Logger.log(err, LogLevel.DEBUG)
+                Logger.log("Could not get input's neighbours, do they exist ?", LogLevel.DEBUG)
                 reject(new RDFGraph())
             });
         })
