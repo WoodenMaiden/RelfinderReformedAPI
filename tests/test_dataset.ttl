@@ -14,6 +14,13 @@
 <http://people.local/someUser> ppl:hasfriend <http://people.local/yann> .
 <http://people.local/yann> ppl:hasfriend <http://people.local/someUser> .
 
+<http://people.local/yann> rdf:type <http://people.local/types/player> .
+<http://people.local/someUser> rdf:type <http://people.local/types/player> .
+<http://people.local/types/player> rdfs:subClassOf <http://people.local/types/person> .
+
+<http://games.local/leagueoflegends> rdf:type <http://games.local/types/game> .
+<http://games.local/warframe> rdf:type <http://games.local/types/game> .
+
 <http://people.local/yann> ppl:plays <http://games.local/leagueoflegends> .
 <http://people.local/yann> ppl:mains <http://games.local/leagueoflegends/champions/ryze> .
 <http://people.local/yann> ppl:mains <http://games.local/leagueoflegends/champions/yorick> .
@@ -24,6 +31,26 @@
 <http://games.local/leagueoflegends/champions/ryze> lol:counters <http://games.local/leagueoflegends/champions/yorick> .
 <http://games.local/leagueoflegends/champions/ryze> lol:counteredby <http://games.local/leagueoflegends/champions/cassiopea> .
 
+<http://games.local/leagueoflegends/champions/ryze> rdf:type <http://games.local/leagueoflegends/types/champions> .
+<http://games.local/leagueoflegends/champions/yorick> rdf:type <http://games.local/leagueoflegends/types/champions> .
+<http://games.local/leagueoflegends/champions/yone> rdf:type <http://games.local/leagueoflegends/types/champions> .
+<http://games.local/leagueoflegends/champions/cassiopea> rdf:type <http://games.local/leagueoflegends/types/champions> .
+<http://games.local/leagueoflegends/champions/irelia> rdf:type <http://games.local/leagueoflegends/types/champions> .
+<http://games.local/leagueoflegends/champions/darius> rdf:type <http://games.local/leagueoflegends/types/champions> .
+
+<http://games.local/leagueoflegends/types/champions> rdfs:subClassOf <http://games.local/types/characters> .
+<http://games.local/warframe/types/frames> rdfs:subClassOf <http://games.local/types/characters> .
+<http://games.local/leagueoflegends/types/items> rdfs:subClassOf <http://games.local/types/items> .
+<http://games.local/warframe/types/weapons> rdfs:subClassOf <http://games.local/types/items> .
+<http://games.local/warframe/types/power> rdfs:subClassOf <http://games.local/types/spells> .
+
+<http://games.local/leagueoflegends/items/trinity> rdf:type <http://games.local/leagueoflegends/types/items> .
+<http://games.local/leagueoflegends/items/hullbreaker> rdf:type <http://games.local/leagueoflegends/types/items> .
+<http://games.local/leagueoflegends/items/steraksgage> rdf:type <http://games.local/leagueoflegends/types/items> .
+<http://games.local/leagueoflegends/items/everfrost> rdf:type <http://games.local/leagueoflegends/types/items> .
+<http://games.local/leagueoflegends/items/archangelstaff> rdf:type <http://games.local/leagueoflegends/types/items> .
+<http://games.local/leagueoflegends/items/zonhyahourglass> rdf:type <http://games.local/leagueoflegends/types/items> .
+
 <http://people.local/someUser> ppl:plays <http://games.local/leagueoflegends> .
 <http://people.local/someUser> ppl:mains <http://games.local/leagueoflegends/champions/yorick> .
 <http://games.local/leagueoflegends/champions/yorick> lol:builds <http://games.local/leagueoflegends/items/trinity> .
@@ -33,13 +60,24 @@
 <http://games.local/leagueoflegends/champions/yorick> lol:counteredby <http://games.local/leagueoflegends/champions/ryze> .
 <http://games.local/leagueoflegends/champions/yorick> lol:counters <http://games.local/leagueoflegends/champions/darius> .
 
+<http://games.local/warframe/frame/garuda> rdf:type <http://games.local/warframe/types/frames> .
+<http://games.local/warframe/weapons/igniswrath> rdf:type <http://games.local/warframe/types/weapons> .
+<http://games.local/warframe/weapons/brakkkuva> rdf:type <http://games.local/warframe/types/weapons> .
+<http://games.local/warframe/weapons/mire> rdf:type <http://games.local/warframe/types/weapons> .
+<http://games.local/warframe/power/dreadmirror> rdf:type <http://games.local/warframe/types/power> .
+<http://games.local/warframe/power/bloodaltar> rdf:type <http://games.local/warframe/types/power> .
+<http://games.local/warframe/power/bloodletting> rdf:type <http://games.local/warframe/types/power> .
+<http://games.local/warframe/power/seekingtalons> rdf:type <http://games.local/warframe/types/power> .
 
-<http://games.local/leagueoflegends> lol:release "2009" .
+<http://games.local/leagueoflegends> lol:release 2009 .
 <http://people.local/yann> ppl:plays <http://games.local/warframe> .
 <http://people.local/yann> ppl:uses <http://games.local/warframe/weapons/igniswrath> .
 <http://people.local/yann> ppl:uses <http://games.local/warframe/weapons/brakkkuva> .
+<http://people.local/yann> ppl:uses <http://games.local/warframe/weapons/mire> .
 <http://people.local/yann> ppl:mains <http://games.local/warframe/frame/garuda> .
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/dreadmirror> .
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/bloodaltar> .
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/bloodletting> .
 <http://games.local/warframe/frame/garuda> wf:haspower <http://games.local/warframe/power/seekingtalons> .
+
+<http://irrelevant.namespace/a> <http://irrelevant.namespace/b> <http://irrelevant.namespace/c>
