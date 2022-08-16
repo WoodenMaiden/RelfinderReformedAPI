@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "npx tslint -c tslint.json -p tsconfig.json --fix",
     "build": "rm -rf dist/* ; npm run prebuild && tsc",
-    "dev:start": "kill $(lsof -i:$(grep 'RFR_PORT=' .env | cut -d= -f2) -t); npm-run-all build -s start",
+    "dev:start": "kill $(ss -lptn 'sport = :8080' | grep LISTEN | cut -d= -f2 | cut -d, -f1); npm-run-all build -s start",
     "dev": "npx nodemon --watch src -e ts,js,ejs --exec npm run dev:start",
     "start": "node . http://localhost:8888/sparql -c strict -p 8080 -l /dev/stdout /tmp/rfr_$(date --rfc-3339=seconds | sed 's/ /_/').log --loglevel TRACE",
     "test": "npx jest"
