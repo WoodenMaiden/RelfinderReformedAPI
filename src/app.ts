@@ -198,9 +198,10 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
         res.status(400).send({message: "please read the /docs route to see how to use this route"});
     else {
         try {
-            const labels = (req.body.node.match(/\w+:\/\/.*/i))
-                ? await client.query.select(Queries.getLabels(req.body.node))
-                : await client.query.select(Queries.getByLabel(req.body.node))
+            const node = req.body.node.toLowerCase();
+            const labels = (node.match(/\w+:\/\/.*/i))
+                ? await client.query.select(Queries.getLabels(node))
+                : await client.query.select(Queries.getByLabel(node))
 
             res.status(200).send({ labels })
         } catch (exception: unknown) {
