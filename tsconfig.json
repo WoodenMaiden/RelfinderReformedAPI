@@ -18,6 +18,11 @@
             "graphology",
             "sparql-http-client",
             "jest"
+        ],
+        "lib": [
+            "DOM",
+            "ESNext",
+            "es2021"
         ]
     },
     "include": [

@@ -3,8 +3,11 @@ import {createWriteStream} from "fs"
 import 'dotenv/config'
 import express from 'express'
 import bodyParser from 'body-parser'
-import { Sequelize, Op } from "sequelize";
+import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 
+
+import { Literal } from 'rdf-js'
 import cors, {CorsOptions} from 'cors';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
@@ -12,14 +15,12 @@ import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 import { Request, Response } from 'express';
 
-import {NodeLabel, LogLevel} from "RFR"
-
 import { args, LEVELS } from "./utils/args";
 import client, {endpoint} from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
-import initSequelize from "./labelStore/labelStore";
+import { initSequelize, fillDB } from "./labelStore/labelStore";
 import Label from "./labelStore/label";
 
 
@@ -49,10 +50,10 @@ app.get("/health", async (req: Request, res: Response) => {
     const queries = []
 
     // return either the elapsed time of query or the error
-    const mesureQueryTime = async (query: Promise<unknown>) => {
+    const mesureQueryTime = async (promise: Promise<unknown>) => {
         try {
             const start: number = Date.now()
-            await client.query.select(Queries.getAll({offset: 0, limit: 1}))
+            await promise
             return Date.now() - start
         }
         catch(e: any) {
@@ -63,9 +64,9 @@ app.get("/health", async (req: Request, res: Response) => {
     queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
     if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
 
-    const timings = await Promise.all(queries)
+    const timings = await Promise.allSettled(queries)
 
-    Logger.log(JSON.stringify(timings), LogLevel.DEBUG)
+    Logger.debug(JSON.stringify(timings))
 
     res.status(200).send({
         message: "OK!",
@@ -198,7 +199,7 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
             res.status(200).send((toReturn.nodes().length > 0)? toReturn: rdf.graph)
 
         }).catch((err: any) => {
-            console.log(err)
+            Logger.error(err)
             res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
         })
     }
@@ -212,34 +213,32 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
             const node = req.body.node.toLowerCase();
             const isURI = node.match(/\w+:\/\/.*/i)? true: false
 
-            // const promises = [
-            //     // (isURI)? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
-            //     Label.findAll({
-            //         where: {
-            //             ...(isURI)? { s: { $like: `${node}%` } }
-            //                       : { label: { $like: `%${node}%` } }
-            //         }
-            //     })
-            // ]
-            // if (sequelize) promises.push()
+            const promises: Promise<any[]>[] = [
+                (isURI)? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
+            ]
 
-
-            // const labels = await Promise.race(promises)
-            const labels = await Label.findAll({
-                where: {
-                    ...(isURI)? { s: { [Op.like]: `${node}%` } }
+            if (sequelize) promises.push(
+                Label.findAllAndMap({
+                    where: {
+                        ...(isURI)? { s: { [Op.like]: `${node}%` } }
                                 : { label: { [Op.like]: `%${node}%` } }
-                }
-            })
-            Logger.log(JSON.stringify(labels), LogLevel.DEBUG)
+                    },
+                })
+            )
+
+            const labels = await Promise.any(promises)
+
+            Logger.debug(JSON.stringify(labels))
 
             res.status(200).send({ labels })
         } catch (exception: unknown) {
-            Logger.log(JSON.stringify(exception), LogLevel.ERROR)
+            Logger.error(JSON.stringify(exception))
             res.status(500).send(JSON.stringify(exception))
         }
     }
 })
+
+
 
 app.listen(args.p, async () => {
     if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
@@ -262,21 +261,35 @@ app.listen(args.p, async () => {
     Logger.info(`Server started at port ${args.p}`);
 
     if (args.c !== "none") {
-        Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
+        Logger.info(`Sending query to check endpoint's status...`);
 
         client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
-            Logger.log(`Endpoint ${endpoint} is reachable! RFR is now usable!`, LogLevel.INFO)
+            Logger.info(`Endpoint ${endpoint} is reachable! RFR is now usable!`)
         }).catch((err: string) => {
-            Logger.log(`Could not reach endpoint ${endpoint}`, LogLevel.WARN)
+            Logger.warn(`Could not reach endpoint ${endpoint}`)
             if (args.c === "strict") {
-                Logger.log(err.toString(), LogLevel.FATAL)
+                Logger.fatal(err.toString())
                 process.exit(1)
             }
         });
     }
 
     const pgUrl = process.env.POSTGRES_URL ?? args.postgresConnectionUrl
-    if (pgUrl) sequelize = await initSequelize(pgUrl)
+    if (pgUrl){
+        try {
+            sequelize = await initSequelize(pgUrl)
+            await fillDB(sequelize, client)
+            setInterval(
+                fillDB,
+                2 * 60 * 60 * 1000, // every 2 hours
+                sequelize,
+                client
+            )
+        } catch (e: unknown) {
+            Logger.error('Cannot setup database ' + JSON.stringify(e))
+        }
+
+    }
 })
 
 // monitoring
