@@ -62,5 +62,11 @@ export const args = yargs(process.argv.slice(1)).options({
         demandOption: false,
         describe: "Defines namespaces to exclude from in queries",
         type: "array"
+    },
+    "postgres-connection-url": {
+        default: null,
+        demandOption: false,
+        describe: "An optionnal connection URL to a Postgres database, used to store labels. This comes in handy in larger datasets",
+        type: "string"
     }
 }).parseSync();

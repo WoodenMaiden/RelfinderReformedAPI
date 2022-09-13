@@ -3,6 +3,7 @@ import {createWriteStream} from "fs"
 import 'dotenv/config'
 import express from 'express'
 import bodyParser from 'body-parser'
+import { Sequelize, Op } from "sequelize";
 
 import cors, {CorsOptions} from 'cors';
 import {MultiDirectedGraph} from "graphology";
@@ -11,17 +12,20 @@ import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 import { Request, Response } from 'express';
 
-import {LogLevel} from "RFR"
+import {NodeLabel, LogLevel} from "RFR"
 
 import { args, LEVELS } from "./utils/args";
 import client, {endpoint} from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
+import initSequelize from "./labelStore/labelStore";
+import Label from "./labelStore/label";
 
 
 const jsonparse = bodyParser.json()
 const app = express()
+let sequelize: Sequelize;
 
 
 const cpuUsage = {
@@ -41,33 +45,40 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.get("/health", async (req: Request, res: Response) => {
-    let time: number = 0
-    let connectionStatus: boolean = false
-    let error: Error
-    const UPTIME: number = process.uptime() // Math.floor(process.uptime())
+    const UPTIME: number = process.uptime()
+    const queries = []
 
-    try {
-        const start: number = Date.now()
-        await client.query.select(Queries.getAll({offset: 0, limit: 1}))
-        time = Date.now() - start
-        connectionStatus = true
+    // return either the elapsed time of query or the error
+    const mesureQueryTime = async (query: Promise<unknown>) => {
+        try {
+            const start: number = Date.now()
+            await client.query.select(Queries.getAll({offset: 0, limit: 1}))
+            return Date.now() - start
+        }
+        catch(e: any) {
+            return e
+        }
     }
-    catch(e: any) {
-        error = e
-    }
-    finally {
-        res.status(200).send({
-            message: "OK!",
-            APIVersion: "1.0.0test",
-            endpoint: (connectionStatus)? { status: connectionStatus, queryTime: time }: { status: connectionStatus, error },
-            ressources : {
-                cpu : cpuUsage,
-                memory : memoryUsage
-            },
-            uptime: `${Math.floor((UPTIME/60)/60)}h ${Math.floor((UPTIME/60)%60)}m ${Math.floor(UPTIME % 60)}s ${Math.floor(UPTIME % 1 *1000)}ms`,
-            calculatedStart: new Date(Date.now() - UPTIME * 1000),
-        });
-    }
+
+    queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
+    if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
+
+    const timings = await Promise.all(queries)
+
+    Logger.log(JSON.stringify(timings), LogLevel.DEBUG)
+
+    res.status(200).send({
+        message: "OK!",
+        APIVersion: "1.0.0test",
+        endpoint: { time: timings[0] },
+        labelStore: { time: (timings.length >= 2)? timings[1]: null},
+        ressources : {
+            cpu : cpuUsage,
+            memory : memoryUsage
+        },
+        uptime: `${Math.floor((UPTIME/60)/60)}h ${Math.floor((UPTIME/60)%60)}m ${Math.floor(UPTIME % 60)}s ${Math.floor(UPTIME % 1 *1000)}ms`,
+        calculatedStart: new Date(Date.now() - UPTIME * 1000),
+    });
 
 })
 
@@ -199,18 +210,38 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
     else {
         try {
             const node = req.body.node.toLowerCase();
-            const labels = (node.match(/\w+:\/\/.*/i))
-                ? await client.query.select(Queries.getLabels(node))
-                : await client.query.select(Queries.getByLabel(node))
+            const isURI = node.match(/\w+:\/\/.*/i)? true: false
+
+            // const promises = [
+            //     // (isURI)? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
+            //     Label.findAll({
+            //         where: {
+            //             ...(isURI)? { s: { $like: `${node}%` } }
+            //                       : { label: { $like: `%${node}%` } }
+            //         }
+            //     })
+            // ]
+            // if (sequelize) promises.push()
+
+
+            // const labels = await Promise.race(promises)
+            const labels = await Label.findAll({
+                where: {
+                    ...(isURI)? { s: { [Op.like]: `${node}%` } }
+                                : { label: { [Op.like]: `%${node}%` } }
+                }
+            })
+            Logger.log(JSON.stringify(labels), LogLevel.DEBUG)
 
             res.status(200).send({ labels })
         } catch (exception: unknown) {
-            res.status(500).send(exception)
+            Logger.log(JSON.stringify(exception), LogLevel.ERROR)
+            res.status(500).send(JSON.stringify(exception))
         }
     }
 })
 
-app.listen(args.p, () => {
+app.listen(args.p, async () => {
     if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
     else {
         Logger.init(
@@ -243,6 +274,9 @@ app.listen(args.p, () => {
             }
         });
     }
+
+    const pgUrl = process.env.POSTGRES_URL ?? args.postgresConnectionUrl
+    if (pgUrl) sequelize = await initSequelize(pgUrl)
 })
 
 // monitoring
