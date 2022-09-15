@@ -196,9 +196,23 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
 
 app.listen(args.p, () => {
     if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
-    else Logger.init(args.l.map(file => createWriteStream(file, {encoding: "utf-8", flags: "a"})), LEVELS.indexOf(args.loglevel));
+    else {
+        Logger.init(
+            args.l.map(file => {
+                switch(file.toLowerCase()){
+                    case "/dev/stdout":
+                        return process.stdout
+                    case "/dev/stderr":
+                        return process.stderr
+                    default:
+                        return createWriteStream(file, {encoding: "utf-8", flags: "a"})
+                }
+            }),
+            LEVELS.indexOf(args.loglevel)
+        );
+    }
 
-    Logger.log(`Server started at port ${args.p}`, LogLevel.INFO);
+    Logger.info(`Server started at port ${args.p}`);
 
     if (args.c !== "none") {
         Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
