@@ -51,28 +51,25 @@ app.get("/health", async (req: Request, res: Response) => {
 
     // return either the elapsed time of query or the error
     const mesureQueryTime = async (promise: Promise<unknown>) => {
-        try {
             const start: number = Date.now()
             await promise
             return Date.now() - start
-        }
-        catch(e: any) {
-            return e
-        }
+
     }
 
     queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
     if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
 
-    const timings = await Promise.allSettled(queries)
+    const timings = (await Promise.allSettled(queries))
+        .map(t => (t.status === 'fulfilled')? t.value : -1)
 
     Logger.debug(JSON.stringify(timings))
 
     res.status(200).send({
         message: "OK!",
         APIVersion: "1.0.0test",
-        endpoint: { time: timings[0] },
-        labelStore: { time: (timings.length >= 2)? timings[1]: null},
+        endpoint: timings[0],
+        ...(timings.length >= 2)? { labelStore: timings[1] }: null,
         ressources : {
             cpu : cpuUsage,
             memory : memoryUsage
