@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "experimentalDecorators": true,
         "module": "commonjs",
         "esModuleInterop": true,
         "target": "es6",
@@ -17,6 +18,11 @@
             "graphology",
             "sparql-http-client",
             "jest"
+        ],
+        "lib": [
+            "DOM",
+            "ESNext",
+            "es2021"
         ]
     },
     "include": [

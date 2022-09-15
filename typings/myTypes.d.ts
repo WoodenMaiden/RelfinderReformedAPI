@@ -26,12 +26,17 @@ declare module "RFR" {
 	// Types used by sparql client
 	export interface Literal {
 		value: any,
-		datatype: NamedNode,
-		language: ''
+		datatype?: NamedNode,
+		language?: string
 	}
 
 	export interface NamedNode {
 		value: string
+	}
+
+	export interface NodeLabel {
+		s: NamedNode,
+		label: NamedNode
 	}
 
 	export const enum LogLevel {

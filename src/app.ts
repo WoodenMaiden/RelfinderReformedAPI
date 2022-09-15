@@ -3,7 +3,11 @@ import {createWriteStream} from "fs"
 import 'dotenv/config'
 import express from 'express'
 import bodyParser from 'body-parser'
+import { Op } from "sequelize";
+import { Sequelize } from "sequelize-typescript";
 
+
+import { Literal } from 'rdf-js'
 import cors, {CorsOptions} from 'cors';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
@@ -11,17 +15,18 @@ import {bidirectional} from 'graphology-shortest-path/unweighted';
 import {edgePathFromNodePath} from 'graphology-shortest-path/utils';
 import { Request, Response } from 'express';
 
-import {LogLevel} from "RFR"
-
 import { args, LEVELS } from "./utils/args";
-import client from './graph/endpoint'
+import client, {endpoint} from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
+import { initSequelize, fillDB } from "./labelStore/labelStore";
+import Label from "./labelStore/label";
 
 
 const jsonparse = bodyParser.json()
 const app = express()
+let sequelize: Sequelize;
 
 
 const cpuUsage = {
@@ -41,40 +46,47 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.get("/health", async (req: Request, res: Response) => {
-    let time: number = 0
-    let connectionStatus: boolean = false
-    let error: Error
-    const UPTIME: number = process.uptime() // Math.floor(process.uptime())
+    const UPTIME: number = process.uptime()
+    const queries = []
 
-    try {
-        const start: number = Date.now()
-        await client.query.select(Queries.getAll({offset: 0, limit: 1}))
-        time = Date.now() - start
-        connectionStatus = true
+    // return either the elapsed time of query or the error
+    const mesureQueryTime = async (promise: Promise<unknown>) => {
+        try {
+            const start: number = Date.now()
+            await promise
+            return Date.now() - start
+        }
+        catch(e: any) {
+            return e
+        }
     }
-    catch(e: any) {
-        error = e
-    }
-    finally {
-        res.status(200).send({
-            message: "OK!",
-            APIVersion: "1.0.0test",
-            endpoint: (connectionStatus)? { status: connectionStatus, queryTime: time }: { status: connectionStatus, error },
-            ressources : {
-                cpu : cpuUsage,
-                memory : memoryUsage
-            },
-            uptime: `${Math.floor((UPTIME/60)/60)}h ${Math.floor((UPTIME/60)%60)}m ${Math.floor(UPTIME % 60)}s ${Math.floor(UPTIME % 1 *1000)}ms`,
-            calculatedStart: new Date(Date.now() - UPTIME * 1000),
-        });
-    }
+
+    queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
+    if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
+
+    const timings = await Promise.allSettled(queries)
+
+    Logger.debug(JSON.stringify(timings))
+
+    res.status(200).send({
+        message: "OK!",
+        APIVersion: "1.0.0test",
+        endpoint: { time: timings[0] },
+        labelStore: { time: (timings.length >= 2)? timings[1]: null},
+        ressources : {
+            cpu : cpuUsage,
+            memory : memoryUsage
+        },
+        uptime: `${Math.floor((UPTIME/60)/60)}h ${Math.floor((UPTIME/60)%60)}m ${Math.floor(UPTIME % 60)}s ${Math.floor(UPTIME % 1 *1000)}ms`,
+        calculatedStart: new Date(Date.now() - UPTIME * 1000),
+    });
 
 })
 
 app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
     const depth: number = parseInt(req.url.split('/').slice(-1)[0], 10);
     if (!req.body.nodes || req.body.nodes.length < 2)
-        res.status(404).send({message: "please read the /docs route to see how to use this route"})
+        res.status(400).send({message: "please read the /docs route to see how to use this route"})
 
     else {
 
@@ -187,14 +199,48 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
             res.status(200).send((toReturn.nodes().length > 0)? toReturn: rdf.graph)
 
         }).catch((err: any) => {
-            console.log(err)
+            Logger.error(err)
             res.status(404).send({message: "Failed to fetch the graph! Are your parameters valid?", dt: err})
         })
     }
 })
 
+app.post("/labels", jsonparse, async (req: Request, res: Response) => {
+    if (!req.body.node && typeof req.body.node !== "string")
+        res.status(400).send({message: "please read the /docs route to see how to use this route"});
+    else {
+        try {
+            const node = req.body.node.toLowerCase();
+            const isURI = node.match(/\w+:\/\/.*/i)? true: false
 
-app.listen(args.p, () => {
+            const promises: Promise<any[]>[] = [
+                (isURI)? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
+            ]
+
+            if (sequelize) promises.push(
+                Label.findAllAndMap({
+                    where: {
+                        ...(isURI)? { s: { [Op.like]: `${node}%` } }
+                                : { label: { [Op.like]: `%${node}%` } }
+                    },
+                })
+            )
+
+            const labels = await Promise.any(promises)
+
+            Logger.debug(JSON.stringify(labels))
+
+            res.status(200).send({ labels })
+        } catch (exception: unknown) {
+            Logger.error(JSON.stringify(exception))
+            res.status(500).send(JSON.stringify(exception))
+        }
+    }
+})
+
+
+
+app.listen(args.p, async () => {
     if (args.l.length === 0) Logger.init([process.stdout], LEVELS.indexOf(args.loglevel))
     else {
         Logger.init(
@@ -215,17 +261,34 @@ app.listen(args.p, () => {
     Logger.info(`Server started at port ${args.p}`);
 
     if (args.c !== "none") {
-        Logger.log(`Sending query to check endpoint's status...`, LogLevel.INFO);
+        Logger.info(`Sending query to check endpoint's status...`);
 
         client.query.select(Queries.getAll({offset: 0, limit: 1})).then(() => {
-            Logger.log(`Endpoint ${process.env.SPARQL_ADDRESS} is reachable! RFR is now usable!`, LogLevel.INFO)
+            Logger.info(`Endpoint ${endpoint} is reachable! RFR is now usable!`)
         }).catch((err: string) => {
-            Logger.log(`Could not reach endpoint ${process.env.SPARQL_ADDRESS}`, LogLevel.WARN)
+            Logger.warn(`Could not reach endpoint ${endpoint}`)
             if (args.c === "strict") {
-                Logger.log(err.toString(), LogLevel.FATAL)
+                Logger.fatal(err.toString())
                 process.exit(1)
             }
         });
+    }
+
+    const pgUrl = process.env.POSTGRES_URL ?? args.postgresConnectionUrl
+    if (pgUrl){
+        try {
+            sequelize = await initSequelize(pgUrl)
+            await fillDB(sequelize, client)
+            setInterval(
+                fillDB,
+                2 * 60 * 60 * 1000, // every 2 hours
+                sequelize,
+                client
+            )
+        } catch (e: unknown) {
+            Logger.error('Cannot setup database ' + JSON.stringify(e))
+        }
+
     }
 })
 

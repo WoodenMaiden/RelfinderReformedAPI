@@ -81,7 +81,21 @@ abstract class Queries {
             offset: (opt?.offset !== undefined && opt?.offset !== null)? opt.offset: 0,
             limit: (opt?.limit !== undefined && opt?.limit !== null)? opt.limit: 10000
         }
+    }
 
+    // TODO: improve this, this takes 5 minutes to complete on large datasets...
+    static getLabels(entity: string): string {
+        return `${this.prefixes()} SELECT DISTINCT ?s ?label WHERE {
+    ?s rdfs:label ?label.
+    FILTER (STRSTARTS(LCASE(STR(?s)), '${entity}'))
+} limit 100`
+    }
+
+    static getByLabel(label: string): string {
+        return `${this.prefixes()} SELECT ?s ?label WHERE {
+    ?s rdfs:label ?label.
+    FILTER (STRSTARTS(LCASE(STR(?label)), '${label}'))
+} limit 100`
     }
 }
 

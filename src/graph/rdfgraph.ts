@@ -226,7 +226,7 @@ class RDFGraph {
      */
     public depthFirstSearch (baseGraph: MultiDirectedGraph, startNode: string, stacking: boolean): void {
 
-        if (baseGraph.outNeighbors(startNode) === []) return null;
+        if (baseGraph.outNeighbors(startNode).length <= 0) return null;
 
         this._visited.push(startNode)
 
