@@ -30,7 +30,7 @@ export const args = yargs(process.argv.slice(1)).options({
         alias: "port",
         default: 8080,
         demandOption: false,
-        describe: "Defines files to append logs into, defaults to the standart input",
+        describe: "Port to listen on",
         type: "number"
     },
     "included-graphs": {
