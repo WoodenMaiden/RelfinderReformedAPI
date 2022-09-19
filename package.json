@@ -31,7 +31,6 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.21.4",
     "sparql-http-client": "^2.4.0",
-    "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.3.0",
     "yargs": "^17.3.1"
   },

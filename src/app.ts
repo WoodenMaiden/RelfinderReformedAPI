@@ -5,9 +5,10 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import swaggerUi from 'swagger-ui-express'
+import swaggerDoc from "./utils/docs";
 
 
-import { Literal } from 'rdf-js'
 import cors, {CorsOptions} from 'cors';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
@@ -40,6 +41,8 @@ const memoryUsage = {
 
 const options: CorsOptions = {origin: '*'}
 app.use(cors(options));
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc))
 
 app.get('/', (req: Request, res: Response) => {
     res.status(204).send();
