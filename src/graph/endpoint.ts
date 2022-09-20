@@ -11,7 +11,7 @@ if (args._.length < 2 && !process.env.SPARQL_ENDPOINT) {
     process.exit(1)
 }
 
-export const endpoint = args._[1] as string ?? process.env.SPARQL_ENDPOINT
+export const endpoint = process.env.SPARQL_ENDPOINT ?? args._[1] as string
 const client = new ParsingClient({endpointUrl: endpoint})
 
 export default client

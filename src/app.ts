@@ -5,9 +5,10 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import swaggerUi from 'swagger-ui-express'
+import swaggerDoc from "./utils/docs";
 
 
-import { Literal } from 'rdf-js'
 import cors, {CorsOptions} from 'cors';
 import {MultiDirectedGraph} from "graphology";
 import {Attributes} from "graphology-types";
@@ -41,6 +42,8 @@ const memoryUsage = {
 const options: CorsOptions = {origin: '*'}
 app.use(cors(options));
 
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc))
+
 app.get('/', (req: Request, res: Response) => {
     res.status(204).send();
 })
@@ -51,28 +54,25 @@ app.get("/health", async (req: Request, res: Response) => {
 
     // return either the elapsed time of query or the error
     const mesureQueryTime = async (promise: Promise<unknown>) => {
-        try {
             const start: number = Date.now()
             await promise
             return Date.now() - start
-        }
-        catch(e: any) {
-            return e
-        }
+
     }
 
     queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
     if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
 
-    const timings = await Promise.allSettled(queries)
+    const timings = (await Promise.allSettled(queries))
+        .map(t => (t.status === 'fulfilled')? t.value : -1)
 
     Logger.debug(JSON.stringify(timings))
 
     res.status(200).send({
         message: "OK!",
         APIVersion: "1.0.0test",
-        endpoint: { time: timings[0] },
-        labelStore: { time: (timings.length >= 2)? timings[1]: null},
+        endpoint: timings[0],
+        ...(timings.length >= 2)? { labelStore: timings[1] }: null,
         ressources : {
             cpu : cpuUsage,
             memory : memoryUsage
