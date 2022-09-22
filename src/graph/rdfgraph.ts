@@ -283,20 +283,6 @@ class RDFGraph {
         return SCCs
     }
 
-    /**
-     *
-     * @param maxMoves
-     * @param node1
-     * @param node2
-     * @param nodes
-     * @returns
-     */
-/*    public multipleKosaraju(maxMoves: number, node1: string, node2: string, ...nodes: string[]): MultiDirectedGraph  {
-
-        return new MultiDirectedGraph()
-    }
-*/
-
     private static instanceOfLiteral(object: any ): object is Literal {
         return 'datatype' in object;
     }

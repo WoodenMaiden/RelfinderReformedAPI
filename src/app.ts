@@ -83,18 +83,21 @@ app.get("/health", async (req: Request, res: Response) => {
 
 })
 
-app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
-    const depth: number = parseInt(req.url.split('/').slice(-1)[0], 10);
-    if (!req.body.nodes || req.body.nodes.length < 2)
+app.post("/relfinder/:depth", jsonparse, (req: Request, res: Response) => {
+    const requestedNodes = req.body?.nodes?.sort().filter(
+        (node: string, index: number, arr: string[] ) => (index < arr.length)? node !== arr[index + 1]: true
+    )
+    const depth: number = parseInt(req.params.depth, 10);
+
+    if (!depth || depth < 1 || requestedNodes?.length < 2)
         res.status(400).send({message: "please read the /docs route to see how to use this route"})
 
     else {
-
-        RDFGraph.createFromEntities(req.body.nodes, depth).then((rdf: RDFGraph) => {
+        RDFGraph.createFromEntities(requestedNodes, depth).then((rdf: RDFGraph) => {
 
             const tmp: MultiDirectedGraph = new MultiDirectedGraph()
             const toReturn: MultiDirectedGraph = new MultiDirectedGraph()
-            const SCCs: string [][] = rdf.kosaraju(req.body.nodes[0])
+            const SCCs: string [][] = rdf.kosaraju(requestedNodes[0])
 
 
             function drawSCC(scc: string[]) {
@@ -126,8 +129,8 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
 
             while(sccIndex < SCCs.length){
                 if (SCCs[sccIndex].length !==0)
-                    if (SCCs[sccIndex].includes(req.body.nodes[0])
-                        && SCCs[sccIndex].includes(req.body.nodes[1])){
+                    if (SCCs[sccIndex].includes(requestedNodes[0])
+                        && SCCs[sccIndex].includes(requestedNodes[1])){
                             found = true;
                             break
                     }
@@ -148,6 +151,15 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
 
                 const nodeToSCC: AssociativeArray = {}
 
+                const arrangements: string[][] = requestedNodes.reduce((acc: string[], current: string) => {
+                    const newAcc: string[][] = [];
+                    requestedNodes.forEach((elt: string) => {
+                        if (current !== elt) newAcc.push([current, elt]);
+                    })
+                    return [...acc, ...newAcc];
+                }, []);
+
+
                 for(const SCCelt of SCCs){
                     tmp.addNode(`scc${++nbSCC}`, {elements: SCCelt})
                     for (const elt of SCCelt) nodeToSCC[elt] = `scc${nbSCC}`
@@ -163,37 +175,43 @@ app.post(/\/relfinder\/\d+/, jsonparse, (req: Request, res: Response) => {
                         (!nodeToSCC[target])? target: nodeToSCC[target], attributes)
                 })
 
-                const path = bidirectional(tmp,
-                    (!nodeToSCC[req.body.nodes[0]])? req.body.nodes[0]: nodeToSCC[req.body.nodes[0]],
-                    (!nodeToSCC[req.body.nodes[1]])? req.body.nodes[1]: nodeToSCC[req.body.nodes[1]]
-                )
+                arrangements.forEach((combinaison: string[]) => {
+                    let path = bidirectional(tmp,
+                        (!nodeToSCC[combinaison[0]])? combinaison[0]: nodeToSCC[combinaison[0]],
+                        (!nodeToSCC[combinaison[1]])? combinaison[1]: nodeToSCC[combinaison[1]]
+                    )
+                    if (!path) path = bidirectional(tmp,
+                        (!nodeToSCC[combinaison[1]])? combinaison[1]: nodeToSCC[combinaison[1]],
+                        (!nodeToSCC[combinaison[0]])? combinaison[0]: nodeToSCC[combinaison[0]]
+                    )
 
-                const pathEdges = edgePathFromNodePath(tmp, path)
-                // draw useful SCCs
-                path.forEach((node: string) => {
-                    if (node.substring(0,3) !== "scc") {
 
-                        toReturn.addNode(node)
-                        const litterals: string[] = rdf.graph.outNeighbors(node).filter((lit: string) => !lit.match(/^.+:\/\/.*/ig))
+                    const pathEdges = edgePathFromNodePath(tmp, path)
+                    // draw useful SCCs
+                    path.forEach((node: string) => {
+                        if (node.substring(0,3) !== "scc") {
 
-                        litterals.forEach((elt: string) => {
-                            if (!toReturn.hasNode(elt)) toReturn.addNode(elt)
-                            rdf.graph.forEachDirectedEdge(node, elt,
-                                (edge: string, attributes: Attributes, source: string, target: string) => {
-                                if (!toReturn.hasEdge(edge)) toReturn.addDirectedEdgeWithKey(edge, source, target, attributes)
+                            if (!toReturn.hasNode(node)) toReturn.addNode(node)
+                            const litterals: string[] = rdf.graph.outNeighbors(node).filter((lit: string) => !lit.match(/^.+:\/\/.*/ig))
+
+                            litterals.forEach((elt: string) => {
+                                if (!toReturn.hasNode(elt)) toReturn.addNode(elt)
+                                rdf.graph.forEachDirectedEdge(node, elt,
+                                    (edge: string, attributes: Attributes, source: string, target: string) => {
+                                    if (!toReturn.hasEdge(edge)) toReturn.addDirectedEdgeWithKey(edge, source, target, attributes)
+                                })
                             })
-                        })
 
-                    }
-                    else drawSCC(tmp.getNodeAttribute(node, "elements"))
+                        }
+                        else drawSCC(tmp.getNodeAttribute(node, "elements"))
+                    })
+
+                    // draw links
+                    pathEdges.forEach((link) => {
+                        if (!toReturn.hasDirectedEdge(link)) toReturn.addDirectedEdgeWithKey(link, rdf.graph.source(link),
+                            rdf.graph.target(link), rdf.graph.getEdgeAttributes(link))
+                    })
                 })
-
-                // draw links
-                pathEdges.forEach((link) => {
-                    if (!toReturn.hasDirectedEdge(link)) toReturn.addDirectedEdgeWithKey(link, rdf.graph.source(link),
-                        rdf.graph.target(link), rdf.graph.getEdgeAttributes(link))
-                })
-
             }
 
             res.status(200).send((toReturn.nodes().length > 0)? toReturn: rdf.graph)
