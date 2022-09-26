@@ -60,4 +60,4 @@ jobs:
       uses: docker/build-push-action@v3.1.1
       with:
         push: true
-        tags: ghcr.io/woodenmaiden/relfinderreformedapi:${{ steps.set_version.outputs.no_v }}
+        tags: ghcr.io/woodenmaiden/relfinderreformedapi:${{ steps.set_version.outputs.no_v }},ghcr.io/woodenmaiden/relfinderreformedapi:latest
