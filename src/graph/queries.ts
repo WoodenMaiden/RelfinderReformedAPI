@@ -73,11 +73,11 @@ abstract class Queries {
         }
 
         return {
-            graphs: fuseOrUndefined(opt?.graphs, args["included-graphs"]),
-            excludedClasses: fuseOrUndefined(opt?.excludedClasses, args["excluded-classes"]),
-            includedClasses: fuseOrUndefined(opt?.includedClasses, args["included-classes"]),
-            excludedNamespaces: fuseOrUndefined(opt?.excludedNamespaces, args["excluded-namespaces"]),
-            includedNamespaces: fuseOrUndefined(opt?.includedNamespaces, args["included-namespaces"]),
+            graphs: fuseOrUndefined(opt?.graphs, process.env.INCLUDED_GRAPHS ?? args["included-graphs"]),
+            excludedClasses: fuseOrUndefined(opt?.excludedClasses, process.env.EXCLUDED_CLASSES ?? args["excluded-classes"]),
+            includedClasses: fuseOrUndefined(opt?.includedClasses, process.env.INCLUDED_CLASSES ?? args["included-classes"]),
+            excludedNamespaces: fuseOrUndefined(opt?.excludedNamespaces, process.env.EXCLUDED_NAMESPACES ?? args["excluded-namespaces"]),
+            includedNamespaces: fuseOrUndefined(opt?.includedNamespaces, process.env.INCLUDED_NAMESPACES ?? args["included-namespaces"]),
             offset: (opt?.offset !== undefined && opt?.offset !== null)? opt.offset: 0,
             limit: (opt?.limit !== undefined && opt?.limit !== null)? opt.limit: 10000
         }
