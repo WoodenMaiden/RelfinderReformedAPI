@@ -296,10 +296,10 @@ app.listen(args.p, async () => {
     if (pgUrl){
         try {
             sequelize = await initSequelize(pgUrl)
-            await fillDB(sequelize, client)
+            fillDB(sequelize, client)
             setInterval(
                 fillDB,
-                2 * 60 * 60 * 1000, // every 2 hours
+                4 * 60 * 60 * 1000, // every 4 hours
                 sequelize,
                 client
             )
