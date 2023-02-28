@@ -23,6 +23,11 @@ declare module "RFR" {
 		counter: Literal
 	}
 
+	export interface LabelResult {
+		uri: NamedNode,
+		label: Literal
+	}
+
 	// Types used by sparql client
 	export interface Literal {
 		value: any,
