@@ -43,14 +43,14 @@ docker run relfinder_reformed [url] [CLI options]
 |`included-namespaces`|string[]|Defines namespaces to select from in queries||
 |`excluded-classes`|string[]|Defines classes to exclude from in queries||
 |`excluded-namespaces`|string[]|Defines namespaces to exclude from in queries||
-|`postgres-connection-url`|string[]|An optionnal connection URL to a Postgres database, used to store labels. This comes in handy in larger datasets||
+|`label-store-URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets||
 
 Environment variables will override and take priority over CLI arguments
 ## Env variables
 |Variable|
 |-|
 |SPARQL_ADDRESS|
-|POSTGRES_URL|
+|LABEL_STORE_URL|
 |INCLUDED_CLASSES|
 |EXCLUDED_CLASSES|
 |INCLUDED_GRAPHS|
