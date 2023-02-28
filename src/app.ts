@@ -1,10 +1,9 @@
 import {createWriteStream} from "fs"
+import { NodeLabel } from "RFR";
 
 import 'dotenv/config'
 import express from 'express'
 import bodyParser from 'body-parser'
-import { Op } from "sequelize";
-import { Sequelize } from "sequelize-typescript";
 import swaggerUi from 'swagger-ui-express'
 import swaggerDoc from "./utils/docs";
 
@@ -21,13 +20,12 @@ import client, {endpoint} from './graph/endpoint'
 import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
-import { initSequelize, fillDB } from "./labelStore/labelStore";
-import Label from "./labelStore/label";
+import { LabelStore } from "./labelStore/LabelStore";
 
 
 const jsonparse = bodyParser.json()
 const app = express()
-let sequelize: Sequelize;
+let labelStore: LabelStore;
 
 
 const cpuUsage = {
@@ -44,11 +42,11 @@ app.use(cors(options));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc))
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_: Request, res: Response) => {
     res.status(204).send();
 })
 
-app.get("/health", async (req: Request, res: Response) => {
+app.get("/health", async (_: Request, res: Response) => {
     const UPTIME: number = process.uptime()
     const queries = []
 
@@ -61,7 +59,7 @@ app.get("/health", async (req: Request, res: Response) => {
     }
 
     queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
-    if (sequelize) queries.push(mesureQueryTime(sequelize.authenticate()))
+    if (labelStore) queries.push(labelStore.ping());
 
     const timings = (await Promise.allSettled(queries))
         .map(t => (t.status === 'fulfilled')? t.value : -1)
@@ -232,16 +230,11 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
             const isURI = node.match(/\w+:\/\/.*/i)? true: false
 
             const promises: Promise<any[]>[] = [
-                (isURI)? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
+                isURI? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
             ]
 
-            if (sequelize) promises.push(
-                Label.findAllAndMap({
-                    where: {
-                        ...(isURI)? { s: { [Op.like]: `${node}%` } }
-                                : { label: { [Op.like]: `%${node}%` } }
-                    },
-                })
+            if (labelStore) promises.push(
+                labelStore.search(node)
             )
 
             const labels = await Promise.any(promises)
@@ -292,17 +285,10 @@ app.listen(args.p, async () => {
         });
     }
 
-    const pgUrl = process.env.POSTGRES_URL ?? args.postgresConnectionUrl
-    if (pgUrl){
+    const labelStoreURL = process.env.LABEL_STORE_URL ?? args.labelStoreURL
+    if (labelStoreURL){
         try {
-            sequelize = await initSequelize(pgUrl)
-            fillDB(sequelize, client)
-            setInterval(
-                fillDB,
-                4 * 60 * 60 * 1000, // every 4 hours
-                sequelize,
-                client
-            )
+            labelStore = new LabelStore(labelStoreURL);
         } catch (e: unknown) {
             Logger.error('Cannot setup database ' + JSON.stringify(e))
         }
