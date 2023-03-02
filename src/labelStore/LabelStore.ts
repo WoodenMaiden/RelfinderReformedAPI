@@ -9,8 +9,6 @@ enum StoringPrefixes {
   // SQLITE = "sqlite",
   HTTP = "http",
   HTTPS = "https",
-  // MONGO = "mongo",
-  // MONGOSRV = "mongo+srv" // https://www.mongodb.com/docs/manual/reference/connection-string/
 }
 
 export class LabelStore {
