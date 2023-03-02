@@ -3,12 +3,12 @@ import { Op, TSVECTOR } from "sequelize";
 
 import { NodeLabel } from "RFR";
 
-import { StoringStrategy } from "../StoringStrategy";
+import { StoringStrategy, TABLENAME } from "../StoringStrategy";
 import { RelationnalDatabase } from "./RelationnalDatabase";
 import LabelModel from "./LabelModel";
 
 @Table({
-  tableName: 'labels',
+  tableName: TABLENAME,
   freezeTableName: true,
 })
 class PostgresLabelModel extends Model implements LabelModel {

@@ -9,3 +9,12 @@ services:
         target: /initdb.d
     ports:
       - 8888:8890
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
