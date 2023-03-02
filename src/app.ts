@@ -68,7 +68,7 @@ app.get("/health", async (_: Request, res: Response) => {
 
     res.status(200).send({
         message: "OK!",
-        APIVersion: "1.0.0test",
+        APIVersion: process.env.GIT_COMMIT ?? "unknown",
         endpoint: timings[0],
         ...(timings.length >= 2)? { labelStore: timings[1] }: null,
         ressources : {

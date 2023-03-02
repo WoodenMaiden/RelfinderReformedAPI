@@ -8,6 +8,8 @@ It queries the graphs from a RDF database, in order to show relations between tw
 When a request is sent on the ``/relfinder/{depth}``, the API fetches a subgraph from the database. It then applies the Kosaraju Algorithm and factorize all the Strongly Connected Components (SCCs) into a single node, this helps on larger graphs. Finally a pathfinding algorithm runs to find a path between the two entities.
 ![steps of RFR](/img/schema_rfr_api.png)
 
+More info on the [http://localhost:8080/docs](http://localhost:8080/docs) endpoint.
+
 # Setup
 
 ## Usage
@@ -26,8 +28,8 @@ node . [url]
 
 with Dockerfile
 ```sh
-docker build . -t relfinder_reformed
-docker run relfinder_reformed [url] [CLI options]
+docker pull ghcr.io/woodenmaiden/relfinderreformedapi:latest
+docker run [-e ENV_VARS=values] relfinder_reformed [url] [CLI options]
 ```
 
 ## CLI options
@@ -44,15 +46,78 @@ docker run relfinder_reformed [url] [CLI options]
 |`excluded-classes`|string[]|Defines classes to exclude from in queries||
 |`excluded-namespaces`|string[]|Defines namespaces to exclude from in queries||
 |`label-store-URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets||
+|`label-store-token`|string|An API token to use to connect to the label store if needed (ElasticSearch for instance). It is more to secure to set the LABEL_STORE_TOKEN env variable instead.||
 
-Environment variables will override and take priority over CLI arguments
+> ⚠️ Environment variables will override and take priority over CLI arguments
 ## Env variables
 |Variable|
 |-|
 |SPARQL_ADDRESS|
 |LABEL_STORE_URL|
+|LABEL_STORE_TOKEN|
 |INCLUDED_CLASSES|
 |EXCLUDED_CLASSES|
 |INCLUDED_GRAPHS|
 |INCLUDED_NAMESPACES|
 |EXCLUDED_NAMESPACES|
+
+# Label stores
+
+You might want users to have an URI from a label as they might not know URIS. However as your dataset gets larger and larger you would like to keep this extra query quick. This is where label stores come in handy.
+
+By default, if none is provided via the ``label-store-URL`` option or it's corresponding environment variable, the API will query the entire triplestore to find URI's from a label. This is not efficient and can be slow on large datasets.
+A label store is a database in which you store your labels and their corresponding URI's. This allows to gain time when querying for labels, and it weight off load on your triplestore. 
+
+## Supported databases
+
+Since the amount of text to pe processed is still large, you might want to use a dedicated database implementing full text search.
+Supported databases are:
+
+All relationnal databases supported by [Sequelize](https://sequelize.org/), meaning: 
+- ~~MySQL~~
+- PostgreSQL
+- ~~SQLite~~
+- ~~DB2~~
+- ~~MariaDB~~
+- ~~MSSQL~~
+
+An others like:
+- ElasticSearch
+
+[Here is a nice video to explain what full text search is](https://youtu.be/ajNfOPeWiAY)
+
+### Relationnal databases
+
+The table `labels` will have the following structure:
+
+```yaml
+labels:
+  label: string # Compound primary key
+  uri: string # Compound primary key
+```
+
+> ℹ️ Sequelize automatically creates the table if it does not exists.
+
+> ℹ️ If you use PostgreSQL, a generated column named `search` with type `tsvector` is (to be) added to the table. This column is used to perform full text search. [Here is a simple tutorial on how this works](https://bigmachine.io/2022/06/12/creating-a-full-text-search-engine-in-postgresql-2022/)
+
+### Other databases
+
+#### ElasticSearch
+
+Here is the mapping you should put in the `labels` index:
+
+```json
+{
+  "mappings": {
+    "properties": {
+      "label": {
+        "type": "text"
+      },
+      "uri": {
+        "type": "text"
+      }
+    }
+  }
+}
+```
+> 📓 In ES queries, label get double the score of uri. This is to make sure that if a label is present in the database, it will be returned first.

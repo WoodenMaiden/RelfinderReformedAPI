@@ -1,5 +1,12 @@
 FROM node:16-alpine
 
+ARG COMMIT=unknown
+
+LABEL "fr.ird.maintainer"="yann.pomie@ird.fr" \
+      "version"=${COMMIT} \
+      "description"="Docker image for the RelFinderReformed API"
+ENV GIT_VERSION=${COMMIT}
+
 COPY ./ /web
 WORKDIR /web
 

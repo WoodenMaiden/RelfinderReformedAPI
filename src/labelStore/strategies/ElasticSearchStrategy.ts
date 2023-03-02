@@ -1,7 +1,7 @@
 import { Client as ESCLient, estypes } from "@elastic/elasticsearch";
 import { NodeLabel } from "RFR";
 
-import { StoringStrategy } from "../StoringStrategy";
+import { StoringStrategy, TABLENAME } from "../StoringStrategy";
 import { args } from "../../utils/args";
 import Logger from "../../utils/logger";
 import LabelModel from "./LabelModel";
@@ -10,14 +10,14 @@ class ElasticSearchStrategy implements StoringStrategy {
   private client: ESCLient;
 
   constructor(connectionURL: string) {
-    const auth_token =
+    const authToken =
       process.env.LABEL_STORE_TOKEN ?? args["label-store-token"];
     this.client = new ESCLient({
       name: "RFR: Label Store",
       compression: true,
       node: connectionURL,
       auth: {
-        apiKey: auth_token,
+        apiKey: authToken,
       },
     });
 
@@ -27,7 +27,7 @@ class ElasticSearchStrategy implements StoringStrategy {
   public async search(text: string): Promise<NodeLabel[]> {
     return this.format(
       await this.client.search<LabelModel>({
-        index: "labels",
+        index: TABLENAME,
         query: {
           multi_match: {
             query: text,

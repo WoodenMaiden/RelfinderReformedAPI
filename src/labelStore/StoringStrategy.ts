@@ -6,3 +6,5 @@ export interface StoringStrategy {
   connect(): Promise<void>;
   closeConnection(): Promise<void>;
 }
+
+export const TABLENAME = "labels";
