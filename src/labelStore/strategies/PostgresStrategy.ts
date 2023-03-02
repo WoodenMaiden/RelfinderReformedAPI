@@ -5,13 +5,13 @@ import { NodeLabel } from "RFR";
 
 import { StoringStrategy } from "../StoringStrategy";
 import { RelationnalDatabase } from "./RelationnalDatabase";
-import LabelRelationalModel from "./LabelRelationnalModel";
+import LabelModel from "./LabelModel";
 
 @Table({
   tableName: 'labels',
   freezeTableName: true,
 })
-class PostgresLabelModel extends Model implements LabelRelationalModel {
+class PostgresLabelModel extends Model implements LabelModel {
   @PrimaryKey
   @Column({
       type: DataType.TEXT,
@@ -26,6 +26,7 @@ class PostgresLabelModel extends Model implements LabelRelationalModel {
   })
   uri: string;
 
+  // This row combines both label and uri into a single searchable field
   @Column({
     type: DataType.TSVECTOR,
     allowNull: false,
@@ -49,6 +50,8 @@ export class PostgresStrategy
     super.init(connectionURL, PostgresLabelModel, { dialect: "postgres" });
   }
 
+
+  // TODO: rank resukts and sort them
   public async search(label: string): Promise<NodeLabel[]> {
     return super.format(
       await PostgresLabelModel.findAll({

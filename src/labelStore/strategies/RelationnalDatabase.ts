@@ -3,16 +3,17 @@ import { Sequelize, SequelizeOptions, ModelCtor, Model } from "sequelize-typescr
 import { NodeLabel } from "RFR";
 
 import Logger from "../../utils/logger";
-import LabelRelationalModel from "./LabelRelationnalModel";
+import LabelModel from "./LabelModel";
 
 export abstract class RelationnalDatabase {
   protected sequelize: Sequelize;
 
-  async init(
+  protected async init(
     connectionURL: string,
     model: ModelCtor<Model<any, any>>,
     options: SequelizeOptions = {}
   ) {
+    //    👇 solely for logging purposes
     const databaseType = options.dialect ?? "Labelstore";
     this.sequelize = new Sequelize(connectionURL, {
       logging: (msg, time) =>
@@ -48,7 +49,7 @@ export abstract class RelationnalDatabase {
     await this.sequelize.close();
   }
 
-  protected format(result: LabelRelationalModel[]): NodeLabel[] {
+  protected format(result: LabelModel[]): NodeLabel[] {
     return result.map<NodeLabel>((row) => ({
       label: { value: row.label },
       s: { value: row.uri },
