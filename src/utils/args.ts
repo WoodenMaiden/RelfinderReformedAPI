@@ -68,5 +68,11 @@ export const args = yargs(process.argv.slice(1)).options({
         demandOption: false,
         describe: "An optionnal connection URL to a database storing labels. This comes in handy in larger datasets",
         type: "string"
+    },
+    "label-store-token": {
+        default: null,
+        demandOption: false,
+        describe: "An API token to use to connect to the label store if needed (ElasticSearch for instance). It is more to secure to set the LABEL_STORE_TOKEN env variable instead.",
+        type: "string"
     }
 }).parseSync();
