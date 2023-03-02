@@ -48,6 +48,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4.0.0
       with:
+        build-args: |
+          GIT_COMMIT=${{ steps.variables.outputs.sha_short }}
         allow: security.insecure # Activated because docker does not like self signed certificates
         push: true
         tags: ${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:${{ steps.variables.outputs.sha_short }},${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:latest
