@@ -6,7 +6,7 @@ import { args } from "../../utils/args";
 import Logger from "../../utils/logger";
 import LabelModel from "./LabelModel";
 
-class ElasticSearchStrategy implements StoringStrategy {
+export class ElasticSearchStrategy implements StoringStrategy {
   private client: ESCLient;
 
   constructor(connectionURL: string) {
@@ -17,7 +17,8 @@ class ElasticSearchStrategy implements StoringStrategy {
       compression: true,
       node: connectionURL,
       auth: {
-        apiKey: authToken,
+        username: "elastic",
+        password: authToken,
       },
     });
 
@@ -60,5 +61,9 @@ class ElasticSearchStrategy implements StoringStrategy {
         label: { value: row._source.label },
         s: { value: row._source.uri },
       }));
+  }
+
+  public getName(): string {
+    return "ElasticSearch";
   }
 }

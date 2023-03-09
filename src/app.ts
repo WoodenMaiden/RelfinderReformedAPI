@@ -1,5 +1,4 @@
 import {createWriteStream} from "fs"
-import { NodeLabel } from "RFR";
 
 import 'dotenv/config'
 import express from 'express'
@@ -55,22 +54,33 @@ app.get("/health", async (_: Request, res: Response) => {
             const start: number = Date.now()
             await promise
             return Date.now() - start
-
     }
 
-    queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 1}))))
+    queries.push(mesureQueryTime(client.query.select(Queries.getAll({offset: 0, limit: 0}))))
     if (labelStore) queries.push(labelStore.ping());
 
     const timings = (await Promise.allSettled(queries))
-        .map(t => (t.status === 'fulfilled')? t.value : -1)
+        .map(t => {
+            if (t.status === "fulfilled") return t.value
+            Logger.error(t.reason.stack)
+            return -1
+        })
 
     Logger.debug(JSON.stringify(timings))
 
     res.status(200).send({
         message: "OK!",
-        APIVersion: process.env.GIT_COMMIT ?? "unknown",
-        endpoint: timings[0],
-        ...(timings.length >= 2)? { labelStore: timings[1] }: null,
+        APIVersion: process.env.VERSION ?? "unknown",
+        endpoint: {
+            url : endpoint,
+            time: timings[0]
+        },
+        ...(labelStore)? {
+            labelStore: {
+                type: labelStore?.getName() ?? "none",
+                time: timings[1]
+            }
+        }: null,
         ressources : {
             cpu : cpuUsage,
             memory : memoryUsage
@@ -227,8 +237,11 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
     else {
         try {
             const node = req.body.node.toLowerCase();
+            Logger.debug(`Node: ${node}`)
             const isURI = node.match(/\w+:\/\/.*/i)? true: false
 
+
+            Logger.debug("Waiting for label queries to finish")
             const promises: Promise<any[]>[] = [
                 isURI? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
             ]
@@ -239,7 +252,7 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
 
             const labels = await Promise.any(promises)
 
-            Logger.debug(JSON.stringify(labels))
+            Logger.debug(`Finished with: ${JSON.stringify(labels)}`)
 
             res.status(200).send({ labels })
         } catch (exception: unknown) {
@@ -279,7 +292,7 @@ app.listen(args.p, async () => {
         }).catch((err: string) => {
             Logger.warn(`Could not reach endpoint ${endpoint}`)
             if (args.c === "strict") {
-                Logger.fatal(err.toString())
+                Logger.fatal("Cannot connect to endpoint: " + err.toString())
                 process.exit(1)
             }
         });

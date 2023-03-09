@@ -1,7 +1,7 @@
 name: Push to dev environment
 
 on:
-  workflow_run:
+  push:
     branches-ignore:
       - master
       - main
@@ -49,7 +49,7 @@ jobs:
       uses: docker/build-push-action@v4.0.0
       with:
         build-args: |
-          GIT_VERSION=${{ steps.variables.outputs.sha_short }}
+          GIT_COMMIT=${{ steps.variables.outputs.sha_short }}
         allow: security.insecure # Activated because docker does not like self signed certificates
         push: true
         tags: ${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:${{ steps.variables.outputs.sha_short }},${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:latest

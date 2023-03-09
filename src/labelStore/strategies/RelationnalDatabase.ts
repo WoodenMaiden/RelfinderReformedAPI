@@ -33,6 +33,7 @@ export abstract class RelationnalDatabase {
 
     await this.connect();
     await this.sequelize.sync();
+    Logger.info(`Connected to ${databaseType} label store`);
   }
 
   public async ping(): Promise<number> {
@@ -54,5 +55,9 @@ export abstract class RelationnalDatabase {
       label: { value: row.label },
       s: { value: row.uri },
     }));
+  }
+
+  public getName(): string {
+    return this.sequelize.getDialect();
   }
 }

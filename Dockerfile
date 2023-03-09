@@ -1,11 +1,11 @@
 FROM node:16-alpine
 
-ARG COMMIT=unknown
+ARG GIT_COMMIT=unknown
 
 LABEL "fr.ird.maintainer"="yann.pomie@ird.fr" \
-      "version"=${COMMIT} \
+      "version"=${GIT_COMMIT} \
       "description"="Docker image for the RelFinderReformed API"
-ENV GIT_VERSION=${COMMIT}
+ENV VERSION=${GIT_COMMIT}
 
 COPY ./ /web
 WORKDIR /web
