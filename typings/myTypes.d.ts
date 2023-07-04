@@ -47,4 +47,22 @@ declare module "RFR" {
 		DEBUG = 4,
 		TRACE = 5
 	}
+
+	export interface SparqlSelectHead {
+		vars: string[],
+		link?: string[]
+	}
+
+	export interface SparqlSelectBinding {
+		[key: string]: Literal|NamedNode
+	}
+
+	export interface SparqlSelect {
+		head: SparqlSelectHead,
+		results: {
+			bindings: SparqlSelectBinding[]
+			distinct?: boolean,
+			ordered?: boolean
+		}
+	}
 }

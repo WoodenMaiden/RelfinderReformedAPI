@@ -5,7 +5,7 @@ abstract class Queries {
 
     static prefixes(): string {
         return `PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>`
-    };
+    }
 
     static getAll(opt?: QueryOptions): string {
         const parsedOpt = this.parseQueryOptions(opt)
@@ -17,7 +17,7 @@ abstract class Queries {
     ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
     ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?s), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
 } offset ${parsedOpt.offset} limit ${parsedOpt.limit}`
-    };
+    }
 
     static getGraphFromEntity(entity: string): string {
         return `${this.prefixes()} SELECT DISTINCT ?graph WHERE { GRAPH ?graph { <${entity}> ?p ?o. }}`
@@ -27,17 +27,44 @@ abstract class Queries {
         const parsedOpt = this.parseQueryOptions(opt)
 
         return `SELECT ?s ?p ?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} WHERE {
-            ?s ?p ?o.
-            FILTER(?s IN (<${subject}>))
+            <${subject}> ?p ?o.
+            BIND(<${subject}> as ?s)
             ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}`: ""}
             ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
             ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
             ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
         }`
-    };
+    }
+
+    static recursiveFetch(subjects: string[], depth: number, opt?: QueryOptions): string {
+        const parsedOpt = this.parseQueryOptions(opt)
+        const range = (d: number) => [...Array(d).keys()]
+
+        const generateIntermediates = (maxDepth: number): string[] => maxDepth <= 0? []: range(maxDepth).map(d => `{
+          ?s ?p ?intermediate.
+          ${range(d+1).map(_d =>
+            `?${"_".repeat(_d)}intermediate ?${"_".repeat(_d+1)}p ?${_d===d? "o": `${"_".repeat(_d+1)}intermediate`}`
+            ).join('.\n')
+          }.
+        }`
+        )
+
+
+        return subjects.length <= 0? "":
+        `SELECT DISTINCT ?s ?p ${depth <= 1? "": range(depth).map(d => `?${"_".repeat(d)}intermediate ?${"_".repeat(d+1)}p`).join(" ") + " "}?o ${(parsedOpt.graphs) ? `FROM <${parsedOpt.graphs.join('> FROM <')}>`: ""} WHERE {
+            VALUES ?s {<${subjects.join("> <")}>}
+            {
+                ?s ?p ?o .
+            }${(depth >= 1) ? ` UNION ${generateIntermediates(depth).join(" UNION ")}`: ""}
+
+            ${(parsedOpt.excludedClasses) ? `{ ?s rdf:type ?o FILTER (?o NOT IN ${this.generateClassesFilter(parsedOpt.excludedClasses)})}`: ""}
+            ${(parsedOpt.includedClasses) ? `{ ?s rdf:type ?o FILTER (?o IN ${this.generateClassesFilter(parsedOpt.includedClasses)})}` : ""}
+            ${(parsedOpt.excludedNamespaces) ? `FILTER (!REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.excludedNamespaces)}'))` : ""}
+            ${(parsedOpt.includedNamespaces) ? `FILTER (REGEX(STR(?o), '${this.generateNamespacesRegex(parsedOpt.includedNamespaces)}'))` : ""}
+        }`
+    }
 
     static countTriplesOfGraph(graph: string): string {return `SELECT (count (?s) as ?counter) WHERE { GRAPH <${graph}> {?s ?p ?o.}}`}
-
 
     private static generateNamespacesRegex(strings: string[]): string {
         const toreturn: string[] = strings
@@ -83,7 +110,6 @@ abstract class Queries {
         }
     }
 
-    // TODO: improve this, this takes 5 minutes to complete on large datasets...
     static getLabels(entity: string): string {
         return `${this.prefixes()} SELECT DISTINCT ?s ?label WHERE {
     ?s rdfs:label ?label.

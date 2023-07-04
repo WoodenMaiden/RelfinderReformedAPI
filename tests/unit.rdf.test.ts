@@ -114,4 +114,33 @@ describe('SPARQL Query Generator', () => {
 
         expect(query).toMatch(/FROM \<http\:\/\/graph1\> FROM <http:\/\/graph2>/i)
     })
+
+    it('should generate a recursive query with a depth of 0', () => {
+        const query = Queries.recursiveFetch(["http://node", "http://node2"], 0).replace(/\s+/g, '').trim() // because we don't want to bother abt indents
+
+        expect(query).toMatch(`SELECT DISTINCT ?s ?p ?o FROM <http://localhost/data> WHERE {
+            VALUES ?s {<http://node> <http://node2>}
+            {
+                ?s ?p ?o .
+            }
+        }`.replace(/\s+/g, '').trim())
+    })
+
+    it('should generate a recursive query with a depth of 2', () => {
+        const query = Queries.recursiveFetch(["http://node"], 2).replace(/\s+/g, '').trim() // because we don't want to bother abt indents
+
+        expect(query).toMatch(`SELECT DISTINCT ?s ?p ?intermediate ?_p ?_intermediate ?__p ?o FROM <http://localhost/data> WHERE {
+            VALUES ?s {<http://node>}
+            {
+                ?s ?p ?o .
+            } UNION {
+                ?s ?p ?intermediate .
+                ?intermediate ?_p ?o .
+            } UNION {
+                ?s ?p ?intermediate .
+                ?intermediate ?_p ?_intermediate .
+                ?_intermediate ?__p ?o .
+            }
+        }`.replace(/\s+/g, '').trim())
+    })
 })
