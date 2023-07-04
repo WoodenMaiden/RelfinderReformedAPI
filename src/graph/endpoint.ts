@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import ParsingClient from 'sparql-http-client/ParsingClient'
+import SimpleClient from 'sparql-http-client/SimpleClient'
 
 import { args } from '../utils/args';
 import Logger from '../utils/logger';
@@ -12,6 +13,8 @@ if (args._.length < 2 && !process.env.SPARQL_ADDRESS) {
 }
 
 export const endpoint = process.env.SPARQL_ADDRESS ?? args._[1] as string
-const client = new ParsingClient({endpointUrl: endpoint})
 
+const client = new ParsingClient({endpointUrl: endpoint})
 export default client
+
+export const simpleClient = new SimpleClient({endpointUrl: endpoint})

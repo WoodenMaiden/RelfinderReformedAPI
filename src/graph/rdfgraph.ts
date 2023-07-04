@@ -5,9 +5,10 @@ import * as RFR from "RFR";
 import {Literal} from "RFR";
 
 import queries from'./queries'
-import client from './endpoint'
+import client, {simpleClient} from './endpoint'
 import Logger from "../utils/logger";
 import { LogLevel } from "RFR";
+import { array } from "yargs";
 
 class RDFGraph {
 
@@ -112,31 +113,46 @@ class RDFGraph {
         });
     }
 
-    private static createFromEntitiesRec(inputEntity: string, depth: number, triples: RFR.TripleResult[]): Promise<RFR.TripleResult[]|any> {
-        return new Promise<RFR.TripleResult[]>((resolve, reject) => {
-            if (depth < 1) resolve(triples);
-            else {
-                const promises: Promise<RFR.TripleResult[]>[] = [] ;
-                client.query.select(queries.getObjectsOf(inputEntity)).then((tripleOfObjects:any []) => {
+    private static getRecursivelyFromEntities(entities: string[], depth: number): Promise<RFR.TripleResult[]> {
+        Logger.trace(`getRecursivelyFromEntities(${entities}, ${depth})`)
+        return simpleClient.query.select(queries.recursiveFetch(entities, depth)).then((response: Response) => {
+            return response.json().then((data: RFR.SparqlSelect) => {
+                // the head indicates the order of the variables in the triples
+                // in our case its ?s ?p ?intermediate ?_p ?_intermediate ... ?o
 
-                    triples = triples.concat(tripleOfObjects)
+                const head = data.head.vars
+                const results = data.results.bindings
 
-                    for (const t of tripleOfObjects) {
-                        if (this.instanceOfLiteral(t.o)) continue
-                        promises.push(this.createFromEntitiesRec(t.o.value, depth - 1, triples))
-                    }
+                Logger.debug("properties: " + head.toString() + " : " + head.length.toString())
+                Logger.debug(results.length.toString())
 
-                    Promise.all<RFR.TripleResult[]>(promises).then(recursedData => {
-                        for (const r of recursedData)
-                            triples = triples.concat(r)
-                        resolve(triples)
-                    }).catch((err) => reject(err));
 
-                }).catch((err: any) => reject({ message: "Failed To fetch from endpoint", error: err}));
-            }
+
+                const triples: RFR.TripleResult[] = []
+
+                results.forEach(line =>{
+                    let indexes: number[] = []
+                    head.forEach((elt, index) => {
+                        if (line.hasOwnProperty(elt)) indexes.push(index)
+
+                        if (indexes.length === 3) {
+                            const toPush = {
+                                s: line[head[indexes[0]]],
+                                p: line[head[indexes[1]]],
+                                o: line[head[indexes[2]]]
+                            } as RFR.TripleResult
+                            triples.push(toPush)
+                            Logger.trace(JSON.stringify(toPush))
+                            Logger.trace(triples.length.toString())
+                            indexes = [index]
+                        }
+                    })
+                })
+
+                return triples
+            })
         })
     }
-
 
     /**
      * @description A recursive function to create and fill a RDFGraph object
@@ -154,60 +170,35 @@ class RDFGraph {
                 reject(new RDFGraph())
             }
 
-            const promises: Promise<any[]>[] = [];
-            for (const e of inputEntities)
-                promises.push(client.query.select(queries.getObjectsOf(e)));
 
-            Promise.all(promises).then(data => {
-                const nextPromises: Promise<RFR.TripleResult[]>[] = [];
-                const triples: RFR.TripleResult[] = [];
+            RDFGraph.getRecursivelyFromEntities(inputEntities, depth).then((triples: RFR.TripleResult[]) => {
 
-                for (const d of data)
-                    for (const elt of d)
-                        triples.push(elt)
+                Logger.debug(`Fetched ${triples.length} triples`)
 
-                for (const d of data){
-                    for (const c of d) {
-                        if (this.instanceOfLiteral(c.o)) continue;
+                const toResolve: RDFGraph = new RDFGraph()
 
-                        nextPromises.push(this.createFromEntitiesRec(c.o.value, depth - 1, triples))
-                    }
+                toResolve.graph = new MultiDirectedGraph()
+                toResolve.invertedGraph = new MultiDirectedGraph()
+
+                for (const tuple of triples) {
+
+                    if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
+                    if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
+                    if (!toResolve.graph.directedEdges(tuple.s.value, tuple.o.value).find(
+                        (e: string) => toResolve.graph.getEdgeAttribute(e, 'value') === tuple.p.value
+                    )) toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
+
+
+                    toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
+                        if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
+                        if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
+                        if (!toResolve.invertedGraph.hasEdge(edge)) toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
+                    })
                 }
 
-                Promise.all<RFR.TripleResult[]>(nextPromises).then(recursedData => {
-                    const toResolve: RDFGraph = new RDFGraph()
+                Logger.log(`graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`, LogLevel.DEBUG)
+                resolve(toResolve)
 
-                    for (const arr of recursedData){
-                        for (const c of arr){
-                            const index = triples.find(elt => elt.s.value === c.s.value && elt.p.value === c.p.value && elt.o.value.toString() === c.o.value.toString())
-                            if (!index) triples.push(c);
-                        }
-                    }
-
-                    toResolve.graph = new MultiDirectedGraph()
-                    toResolve.invertedGraph = new MultiDirectedGraph()
-
-                    for (const tuple of triples) {
-                        if (!toResolve.graph.hasNode(tuple.s.value)) toResolve.graph.addNode(tuple.s.value)
-                        if (!toResolve.graph.hasNode(tuple.o.value)) toResolve.graph.addNode(tuple.o.value)
-
-                        toResolve.graph.addDirectedEdge(tuple.s.value, tuple.o.value, {value: tuple.p.value})
-
-                        toResolve.graph.forEachDirectedEdge((edge: string, attributes: Attributes, source: string, target: string) => {
-                            if (!toResolve.invertedGraph.hasNode(source)) toResolve.invertedGraph.addNode(source)
-                            if (!toResolve.invertedGraph.hasNode(target)) toResolve.invertedGraph.addNode(target)
-                            if (!toResolve.invertedGraph.hasEdge(edge)) toResolve.invertedGraph.addDirectedEdgeWithKey(edge, target, source, attributes)
-                        })
-                    }
-
-                    Logger.log(`graph edges = ${toResolve.graph.size}, graph nodes = ${toResolve.graph.order}`, LogLevel.DEBUG)
-                    resolve(toResolve)
-
-                }).catch(err => {
-                    Logger.log(err, LogLevel.DEBUG)
-                    Logger.log(`Could not go further does your entities have neighbours ?`, LogLevel.DEBUG)
-                    reject(new RDFGraph())
-                });
             }).catch(err => {
                 Logger.log(err, LogLevel.DEBUG)
                 Logger.log("Could not get input's neighbours, do they exist ?", LogLevel.DEBUG)
