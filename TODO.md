@@ -9,7 +9,6 @@
 
 # to do ASAP
 - [x] Connect SCCs between them
-- [ ] Implement RDFGraph.multipleKosaraju()
 
 
 # To do someday
