@@ -1,7 +1,7 @@
 version: "3.9"
 services:
 
-  rdf:
+  virtuoso-rdf:
     image: openlink/virtuoso-opensource-7:latest
     volumes:
       - type: bind
@@ -9,6 +9,31 @@ services:
         target: /initdb.d
     ports:
       - 8888:8890
+
+  # graphdb-rdf:
+  #   build:
+  #     context: ./graphdb-docker
+  #     dockerfile: Dockerfile
+  #     args:
+  #       version: 10.2.2
+  #   environment: 
+  #     CONFIG_PATH: /opt/graphdb/graphdb-repo-config.ttl
+  #     GDB_JAVA_OPTS: >-
+  #       -Dgraphdb.home=/opt/graphdb/home
+  #       -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
+  #       -Dgraphdb.workbench.cors.enable=true
+  #       -Denable-context-index=true
+  #       -Dentity-pool-implementation=transactional
+  #       -Dhealth.max.query.time.seconds=60
+  #       -Dgraphdb.append.request.id.headers=true
+  #       -Dreuse.vars.in.subselects=true
+  #   volumes:
+  #     - graphdb-data:/opt/graphdb/home
+  #     - ./tests/test_dataset.ttl:/opt/graphdb/home/graphdb-import/test_dataset.ttl
+  #     - ./graphdb-docker/preload/graphdb-repo.ttl:/opt/graphdb/graphdb-repo-config.ttl
+  #   ports:
+  #     - 8888:7200
+  #     - 8889:7300
 
   # Feel free to (un)comment below services to spare memory and CPU
   # postgres:
@@ -34,3 +59,6 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
+
+volumes:
+  graphdb-data:

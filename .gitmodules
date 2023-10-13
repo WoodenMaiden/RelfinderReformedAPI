@@ -1,0 +1,3 @@
+[submodule "graphdb"]
+	path = graphdb-docker
+	url = https://github.com/WoodenMaiden/graphdb-docker.git
