@@ -5,7 +5,7 @@ services:
     image: openlink/virtuoso-opensource-7:latest
     volumes:
       - type: bind
-        source: ./tests
+        source: ../tests
         target: /initdb.d
     ports:
       - 8888:8890

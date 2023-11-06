@@ -40,13 +40,13 @@ docker run [-e ENV_VARS=values] relfinder_reformed [url] [CLI options]
 |`-l` `--logs`|string[]|Files to write logs into|/dev/stdout|
 |`--loglevel`|`FATAL` `ERROR` `WARN` `INFO` `DEBUG` `DEBUG`|Log level|`INFO`|
 |`-p` `--port`|integer|Port to listen on|8080|
-|`included-graphs`|string[]|Defines graphs to select from in queries||
-|`included-classes`|string[]|Defines classes to select from in queries||
-|`included-namespaces`|string[]|Defines namespaces to select from in queries||
-|`excluded-classes`|string[]|Defines classes to exclude from in queries||
-|`excluded-namespaces`|string[]|Defines namespaces to exclude from in queries||
-|`label-store-URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets||
-|`label-store-token`|string|An API token to use to connect to the label store if needed (ElasticSearch for instance). It is more to secure to set the LABEL_STORE_TOKEN env variable instead.||
+|`--included-graphs`|string[]|Defines graphs to select from in queries||
+|`--included-classes`|string[]|Defines classes to select from in queries||
+|`--included-namespaces`|string[]|Defines namespaces to select from in queries||
+|`--excluded-classes`|string[]|Defines classes to exclude from in queries||
+|`--excluded-namespaces`|string[]|Defines namespaces to exclude from in queries||
+|`--label-store-URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets||
+|`--label-store-token`|string|An API token to use to connect to the label store if needed (ElasticSearch for instance)||
 
 > ⚠️ Environment variables will override and take priority over CLI arguments
 ## Env variables
@@ -73,13 +73,10 @@ A label store is a database in which you store your labels and their correspondi
 Since the amount of text to pe processed is still large, you might want to use a dedicated database implementing full text search.
 Supported databases are:
 
-All relationnal databases supported by [Sequelize](https://sequelize.org/), meaning: 
-- ~~MySQL~~
+Relationnal databases supported by [Sequelize](https://sequelize.org/): 
+- MariaDB
+- MySQL
 - PostgreSQL
-- ~~SQLite~~
-- ~~DB2~~
-- ~~MariaDB~~
-- ~~MSSQL~~
 
 An others like:
 - ElasticSearch
@@ -88,17 +85,40 @@ An others like:
 
 ### Relationnal databases
 
-The table `labels` will have the following structure:
+The table `labels` will contain both the label and the URI. Sequelize automatically creates the table if it does not exists.
 
-```yaml
-labels:
-  label: string # Compound primary key
-  uri: string # Compound primary key
+However, concrete implementation will change between DBMS.
+
+#### MariaDB / MySQL
+
+```sql
+-- The full text search happens thanks to the MATCH() AGAINST() function...
+CREATE TABLE labels (
+  -- ... however MariaDB/MySQL cannot have a text column as a Primary key as it must have a length
+  -- So we use a char(36) column as a primary key
+  `id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `label` text NOT NULL,
+  `uri` text NOT NULL,
+  PRIMARY KEY (`id`),
+  FULLTEXT KEY `FT_SEARCH` (`label`,`uri`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```
 
-> ℹ️ Sequelize automatically creates the table if it does not exists.
+#### PostgreSQL
 
-> ℹ️ If you use PostgreSQL, a generated column named `search` with type `tsvector` is (to be) added to the table. This column is used to perform full text search. [Here is a simple tutorial on how this works](https://bigmachine.io/2022/06/12/creating-a-full-text-search-engine-in-postgresql-2022/)
+```sql
+-- How this works: https://bigmachine.io/2022/06/12/creating-a-full-text-search-engine-in-postgresql-2022/
+
+-- The search column is a generated column that contains the concatenation of the label and the uri, and is indexed using a GIN index.
+-- Every time we query with full-text-search, search column is used.
+CREATE TABLE labels (
+  "label" text NOT NULL,
+  uri text NOT NULL,
+  "search" TSVECTOR NULL GENERATED ALWAYS AS (to_tsvector('english'::regconfig, (label || ' '::text) || uri)) STORED,
+  CONSTRAINT labels_pkey PRIMARY KEY (label, uri)
+);
+CREATE INDEX "IDX_SEARCH" ON public.labels USING gin (search);
+```
 
 ### Other databases
 
@@ -120,4 +140,6 @@ Here is the mapping you should put in the `labels` index:
   }
 }
 ```
-> 📓 In ES queries, label get double the score of uri. This is to make sure that if a label is present in the database, it will be returned first.
+
+> [!NOTE]
+> In ES queries, label get double the score of uri. This is to make sure that if a label is present in the database, it will be returned first.

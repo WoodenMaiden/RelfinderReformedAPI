@@ -20,6 +20,7 @@ import Queries from './graph/queries'
 import RDFGraph from './graph/rdfgraph'
 import Logger from './utils/logger';
 import { LabelStore } from "./labelStore/LabelStore";
+import { NodeLabel } from "RFR"
 
 
 const jsonparse = bodyParser.json()
@@ -242,16 +243,17 @@ app.post("/labels", jsonparse, async (req: Request, res: Response) => {
 
 
             Logger.debug("Waiting for label queries to finish")
-            const promises: Promise<any[]>[] = [
-                isURI? client.query.select(Queries.getLabels(node)): client.query.select(Queries.getByLabel(node)),
-            ]
+            let promise: Promise<NodeLabel[]>;
 
-            if (labelStore) promises.push(
-                labelStore.search(node)
-            )
+            if (labelStore) {
+                promise = labelStore.search(node)
+            } else {
+                promise = isURI
+                    ? client.query.select(Queries.getLabels(node)) as unknown as Promise<NodeLabel[]>
+                    : client.query.select(Queries.getByLabel(node)) as unknown as Promise<NodeLabel[]>
+            };
 
-            const labels = await Promise.any(promises)
-
+            const labels = await promise
             Logger.debug(`Finished with: ${JSON.stringify(labels)}`)
 
             res.status(200).send({ labels })
