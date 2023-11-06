@@ -11,7 +11,7 @@ import LabelModel from "./LabelModel";
   tableName: TABLENAME,
   freezeTableName: true,
 })
-class PostgresLabelModel extends Model implements LabelModel {
+export class PostgresLabelModel extends Model implements LabelModel {
   @PrimaryKey
   @Column({
       type: DataType.TEXT,
@@ -28,8 +28,9 @@ class PostgresLabelModel extends Model implements LabelModel {
 
   // This row combines both label and uri into a single searchable field
   @Column({
-    type: DataType.TSVECTOR,
-    allowNull: false,
+    /*SQL*/
+    type: `TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', "label" || ' ' || "uri")) STORED`,
+    allowNull: true,
   })
   @Index({
     name: "IDX_SEARCH",
@@ -51,13 +52,14 @@ export class PostgresStrategy
   }
 
 
-  // TODO: rank resukts and sort them
-  public async search(label: string): Promise<NodeLabel[]> {
+  public async search(text: string): Promise<NodeLabel[]> {
     return super.format(
       await PostgresLabelModel.findAll({
         where: {
-          search:{ [Op.match]: this.sequelize.fn("to_tsquery", label) }
+          search:{ [Op.match]: this.sequelize.fn("to_tsquery", "english", text) }
         },
+        order: this.sequelize.fn("ts_rank", "search", this.sequelize.fn("to_tsquery", "english", text)),
+        limit: 100,
       })
     );
   }

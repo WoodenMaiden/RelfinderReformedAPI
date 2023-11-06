@@ -2,12 +2,13 @@ import { NodeLabel } from "RFR";
 import { StoringStrategy } from "./StoringStrategy";
 import Logger from "../utils/logger";
 import { PostgresStrategy } from "./strategies/PostgresStrategy";
+import { MySQLStrategy } from "./strategies/MySQLStrategy";
 import { ElasticSearchStrategy } from "./strategies/ElasticSearchStrategy";
 
-enum StoringPrefixes {
+enum Protocol {
   POSTGRES = "postgres",
-  // MYSQL = "mysql",
-  // SQLITE = "sqlite",
+  MYSQL = "mysql",
+  MARIADB = "mariadb",
   HTTP = "http",
   HTTPS = "https",
 }
@@ -17,17 +18,22 @@ export class LabelStore {
 
   constructor(connectionURL: string) {
     switch (/^.[^\:\/]+/.exec(connectionURL)[0]) {
-      case StoringPrefixes.POSTGRES:
+      case Protocol.POSTGRES:
         this.strategy = new PostgresStrategy(connectionURL);
         break;
 
-      case StoringPrefixes.HTTP:
-      case StoringPrefixes.HTTPS:
+      case Protocol.MARIADB:
+      case Protocol.MYSQL:
+        this.strategy = new MySQLStrategy(connectionURL);
+        break;
+
+      case Protocol.HTTP:
+      case Protocol.HTTPS:
         this.strategy = new ElasticSearchStrategy(connectionURL);
         break;
 
       default:
-        Logger.info(`Unknown connection prefix: ${connectionURL}`);
+        Logger.error(`Unknown connection prefix: ${connectionURL}`);
         throw new Error(`Unknown connection prefix: ${connectionURL}`);
     }
   }
