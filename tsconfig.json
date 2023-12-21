@@ -1,32 +1,21 @@
 {
-    "compilerOptions": {
-        "experimentalDecorators": true,
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "target": "es6",
-        "noImplicitAny": true,
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "outDir": "dist",
-        "baseUrl": ".",
-        "paths": {
-            "*": [
-                "node_modules/*"
-            ]
-        }, 
-        "types": [
-            "graphology",
-            "sparql-http-client",
-            "jest"
-        ],
-        "lib": [
-            "DOM",
-            "ESNext",
-            "es2021"
-        ]
-    },
-    "include": [
-        "src/**/*",
-        "typings/**/*"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  }
 }
