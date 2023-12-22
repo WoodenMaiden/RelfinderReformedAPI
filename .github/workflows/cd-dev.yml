@@ -9,7 +9,7 @@ on:
       - '*ci*' # Ignore CICD branches
     paths:
       - src/**
-      - tests/**
+      - test/**
       - Dockerfile
       - typings/**
       - docker-entrypoint.sh
@@ -21,35 +21,35 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Clone project
-      uses: actions/checkout@v3
+      - name: Clone project
+        uses: actions/checkout@v3
 
-    - name: Get short commit hash
-      id: variables
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get short commit hash
+        id: variables
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      with:
-        version: latest
-        config-inline: |
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+          config-inline: |
             [registry."10.9.2.21:8080"]
               http = false
               insecure = true
               ca=["/etc/docker/certs.d/10.9.2.21/ca.crt"]
 
-    - name: "Login to private registry at: ${{ vars.DOCKER_REGISTRY_HOST }}"
-      uses: docker/login-action@v2.1.0
-      with:
-        registry: ${{ vars.DOCKER_REGISTRY_HOST }}
-        username: ${{ secrets.DOCKER_REGISTRY_USER }}
-        password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: 'Login to private registry at: ${{ vars.DOCKER_REGISTRY_HOST }}'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ vars.DOCKER_REGISTRY_HOST }}
+          username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4.0.0
-      with:
-        build-args: |
-          GIT_COMMIT=${{ steps.variables.outputs.sha_short }}
-        allow: security.insecure # Activated because docker does not like self signed certificates
-        push: true
-        tags: ${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:${{ steps.variables.outputs.sha_short }},${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          build-args: |
+            GIT_COMMIT=${{ steps.variables.outputs.sha_short }}
+          allow: security.insecure # Activated because docker does not like self signed certificates
+          push: true
+          tags: ${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:${{ steps.variables.outputs.sha_short }},${{ vars.DOCKER_REGISTRY_HOST }}/rfr/relfinderreformedapi:latest

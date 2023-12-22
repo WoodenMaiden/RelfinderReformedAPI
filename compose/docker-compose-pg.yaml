@@ -1,11 +1,10 @@
-version: "3.9"
+version: '3.9'
 services:
-
   rdf:
     image: openlink/virtuoso-opensource-7:latest
     volumes:
       - type: bind
-        source: ../tests
+        source: ../test
         target: /initdb.d
     ports:
       - 8888:8890
@@ -17,4 +16,4 @@ services:
       POSTGRES_USER: user
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - '5432:5432'

@@ -5,6 +5,6 @@ dotenvexample.env
 README.md
 cloned_repos
 dist
-tests
+test
 *.env
 *.log
