@@ -1,11 +1,10 @@
-version: "3.9"
+version: '3.9'
 services:
-
   rdf:
     image: openlink/virtuoso-opensource-7:latest
     volumes:
       - type: bind
-        source: ../tests
+        source: ../test
         target: /initdb.d
     ports:
       - 8888:8890
@@ -17,7 +16,7 @@ services:
       MYSQL_ROOT_USER: user
       MYSQL_DATABASE: mysql_labelstore
     ports:
-      - "3306:3306"
+      - '3306:3306'
 
   mariadb:
     image: bitnami/mariadb:latest
@@ -25,4 +24,4 @@ services:
       MARIADB_ROOT_PASSWORD: password
       MARIADB_DATABASE: mariadb_labelstore
     ports:
-      - "3307:3306"
+      - '3307:3306'

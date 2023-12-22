@@ -4,12 +4,16 @@ import { SparqlService } from './sparql';
 import { measureQueryTime } from './util';
 import { HealthResponse } from './HealthResponse';
 import { ApiStatsService } from './api_stats';
+import { ConfigService } from '@nestjs/config';
+import { LabelsService } from './labels/labels.service';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly sparqlService: SparqlService,
     private readonly apiStatsService: ApiStatsService,
+    private readonly configService: ConfigService,
+    private readonly labelsService: LabelsService,
   ) {}
 
   async health(): Promise<HealthResponse> {
@@ -21,10 +25,10 @@ export class AppService {
       message: 'OK!',
       APIVersion: process.env.VERSION ?? 'unknown', // TODO
       endpoint: {
-        url: 'unknown', // TODO
+        url: this.configService.get<string>('sparql_address'),
         time: (await measureQueryTime(this.sparqlService.ping())).time,
       },
-      labelStore: null, // TODO
+      labelStore: { time: await this.labelsService.ping() },
       ressources: {
         cpu,
         memory,

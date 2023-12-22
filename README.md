@@ -32,8 +32,8 @@ docker pull ghcr.io/woodenmaiden/relfinderreformedapi:latest
 docker run [-e ENV_VARS=values] relfinder_reformed [url] [CLI options]
 ```
 
-## CLI options
-|Option|Type|Description|Default value|
+## Env variables
+<!-- |Option|Type|Description|Default value|
 |-|-|-|-|
 |url|string(url)|Address of SPARQL endpoint (Required)||
 |`-c` `--check-connection`|`none` `strict` `no-crash`|checks is the endpoint is reachable at startup, crashes if `strict` is used|`none`|
@@ -59,7 +59,7 @@ docker run [-e ENV_VARS=values] relfinder_reformed [url] [CLI options]
 |EXCLUDED_CLASSES|
 |INCLUDED_GRAPHS|
 |INCLUDED_NAMESPACES|
-|EXCLUDED_NAMESPACES|
+|EXCLUDED_NAMESPACES| -->
 
 # Label stores
 

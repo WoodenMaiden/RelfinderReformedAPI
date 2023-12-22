@@ -1,4 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run test across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Node.js CI
@@ -9,7 +9,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -18,31 +17,31 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup node js
-      uses: actions/setup-node@v3.2.0
-      
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        
-    - name: Cache
-      uses: actions/cache@v3.0.2
-      with:
+      - uses: actions/checkout@v3
+
+      - name: Setup node js
+        uses: actions/setup-node@v3.2.0
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Cache
+        uses: actions/cache@v3.0.2
+        with:
           path: ~/.npm
           key: npm-${{ hashFiles('package-lock.json') }}
           restore-keys: npm-
 
-    - name: Start a Virtuoso instance and fill it
-      uses: WoodenMaiden/sparql-virtuoso-action@v0.1.0
-      with:
-        publish-db-port: 2222
-        publish-http-server-port: 8888
-        triples: ./tests/test_dataset.ttl
+      - name: Start a Virtuoso instance and fill it
+        uses: WoodenMaiden/sparql-virtuoso-action@v0.1.0
+        with:
+          publish-db-port: 2222
+          publish-http-server-port: 8888
+          triples: ./test/test_dataset.ttl
 
-    - run: npm ci --ignore-scripts
-    - run: npm run build --if-present
-    - run: npm test
+      - run: npm ci --ignore-scripts
+      - run: npm run build --if-present
+      - run: npm test
