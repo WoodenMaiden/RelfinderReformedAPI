@@ -16,8 +16,31 @@ export type TripleResult = ResultRow & {
   o: NamedNode | Literal;
 };
 
+export type NeighborsResult = ResultRow & {
+  p: NamedNode;
+  o: NamedNode | Literal;
+};
+
 export type Ping = ResultRow & {
   pong: {
     value: Literal;
+  };
+};
+
+export type SparqlRawSelectHead = {
+  vars: string[];
+  link?: string[];
+};
+
+export type SparqlRawSelectBinding = {
+  [key: string]: Literal | NamedNode;
+};
+
+export type SparqlRawSelect = {
+  head: SparqlRawSelectHead;
+  results: {
+    bindings: SparqlRawSelectBinding[];
+    distinct?: boolean;
+    ordered?: boolean;
   };
 };

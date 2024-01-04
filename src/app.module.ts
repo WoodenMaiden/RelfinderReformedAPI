@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { SparqlModule } from './sparql';
 import { ApiStatsModule } from './api_stats';
 import { LabelsModule } from './labels/labels.module';
+import { RelFinderService, RelFinderController } from './relfinder';
 import configuration from './config/configuration';
 
 @Module({
@@ -31,7 +32,7 @@ import configuration from './config/configuration';
     SparqlModule.forRoot(),
     LabelsModule.forRoot(),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, RelFinderController],
+  providers: [AppService, RelFinderService],
 })
 export class AppModule {}

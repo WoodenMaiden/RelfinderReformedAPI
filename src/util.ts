@@ -8,3 +8,17 @@ export async function measureQueryTime<T>(
     result,
   };
 }
+
+export function range(n: number): number[] {
+  return [...Array(n < 0 ? 0 : n).keys()];
+}
+
+export function cartesian(...allEntries: string[][]) {
+  return allEntries.reduce<string[][]>(
+    (results, entries) =>
+      results
+        .map((result) => entries.map((entry) => result.concat([entry])))
+        .reduce((subResults, result) => subResults.concat(result), []),
+    [[]],
+  );
+}
