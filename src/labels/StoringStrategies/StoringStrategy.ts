@@ -1,12 +1,4 @@
-import { NodeLabel } from '../../sparql';
-
-export type SearchOptions = {
-  limit?: number;
-};
-
-export const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
-  limit: 50,
-};
+import { NodeLabel, SearchOptions } from '../../sparql';
 
 export default interface StoringStrategy {
   getName(): string;

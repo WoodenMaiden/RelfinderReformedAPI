@@ -14,12 +14,14 @@ import StoringStrategy, {
   PostgresStrategy,
   MySQLStrategy,
   MySQLLabelModel,
+  DefaultStragtegy,
 } from './StoringStrategies';
+import { SparqlModule, SparqlService } from 'src/sparql';
 
 @Module({})
 export class LabelsModule {
   static forRoot(): DynamicModule {
-    const imports: DynamicModule[] = [];
+    const imports: DynamicModule[] = [SparqlModule.forRoot()];
     const strategy = this.getStrategy(process.env.LABEL_STORE_URL);
 
     if (
@@ -49,6 +51,12 @@ export class LabelsModule {
       case Protocol.HTTP:
       case Protocol.HTTPS:
         break;
+
+      default:
+        Logger.log(
+          'Using default strategy for the labelstore',
+          LabelsModule.name,
+        );
     }
 
     return {
@@ -57,7 +65,10 @@ export class LabelsModule {
       providers: [
         {
           provide: LABEL_STORE,
-          useFactory: (configService: ConfigService): StoringStrategy => {
+          useFactory: (
+            configService: ConfigService,
+            sparqlService: SparqlService,
+          ): StoringStrategy => {
             const uri = configService.get<string>('labelstore.address');
 
             switch (this.getStrategy(uri)) {
@@ -72,10 +83,10 @@ export class LabelsModule {
               case Protocol.HTTPS:
 
               default:
-                Logger.error('Label store protocol not supported');
+                return new DefaultStragtegy(sparqlService);
             }
           },
-          inject: [ConfigService],
+          inject: [ConfigService, SparqlService],
         },
         LabelsService,
       ],
