@@ -7,13 +7,18 @@ import { GRAPH_CONFIG, PING } from './constants';
 import { SparqlConfig } from 'src/config/configuration';
 import { measureQueryTime } from 'src/util';
 import { SparqlModule } from './sparql.module';
-import { Ping } from './sparqlTypes';
+import { NodeLabel, Ping } from './sparqlTypes';
+
+import { searchForLabel } from './queries';
+import { SearchOptions } from 'src/labels/StoringStrategies';
 
 @Injectable()
 export class SparqlService {
   private parsingClient: ParsingClient;
 
-  constructor(@Inject(GRAPH_CONFIG) sparqlConfig: SparqlConfig) {
+  constructor(
+    @Inject(GRAPH_CONFIG) private readonly sparqlConfig: SparqlConfig,
+  ) {
     this.parsingClient = new ParsingClient({
       endpointUrl: sparqlConfig.sparql_address,
     });
@@ -25,7 +30,7 @@ export class SparqlService {
     );
 
     Logger.debug(
-      `Executed (default): ${query} in ${executedQuery.time}ms`,
+      `Executed SPARQL: ${query} in ${executedQuery.time}ms`,
       SparqlModule.name,
     );
     Logger.verbose(executedQuery.result, SparqlModule.name);
@@ -35,5 +40,11 @@ export class SparqlService {
 
   async ping() {
     return this.select<Ping>(PING);
+  }
+
+  async seachLabel(text: string, searchOptions: SearchOptions) {
+    return this.select<NodeLabel>(
+      searchForLabel(text, searchOptions, this.sparqlConfig),
+    );
   }
 }

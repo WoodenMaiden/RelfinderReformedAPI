@@ -1,5 +1,4 @@
-import { SparqlModule } from './sparql.module';
-import { SparqlService } from './sparql.service';
-import { GraphResults, NodeLabel, TripleResult } from './sparqlTypes';
-
-export { SparqlModule, SparqlService, GraphResults, NodeLabel, TripleResult };
+export * from './sparql.module';
+export * from './sparql.service';
+export * from './sparqlTypes';
+export * from './constants';

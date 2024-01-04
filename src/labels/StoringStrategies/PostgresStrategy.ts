@@ -8,14 +8,11 @@ import {
 } from 'sequelize-typescript';
 import { TSVECTOR, Op } from 'sequelize';
 
-import { NodeLabel } from 'src/sparql';
+import StoringStrategy from './StoringStrategy';
 
-import StoringStrategy, {
-  SearchOptions,
-  DEFAULT_SEARCH_OPTIONS,
-} from './StoringStrategy';
-import LabelModel from '../LabelModel';
+import { NodeLabel, SearchOptions, DEFAULT_SEARCH_OPTIONS } from '../../sparql';
 import { RelationnalDatabase } from './RelationnalDatabase';
+import LabelModel from '../LabelModel';
 import { DEFAULT_LABEL_STORE_TABLE_OPTIONS } from '../constants';
 
 @Table({
