@@ -22,9 +22,7 @@ export type NeighborsResult = ResultRow & {
 };
 
 export type Ping = ResultRow & {
-  pong: {
-    value: Literal;
-  };
+  pong: Literal;
 };
 
 export type SparqlRawSelectHead = {

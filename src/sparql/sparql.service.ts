@@ -1,12 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import { Literal, NamedNode } from 'rdf-js';
 import ParsingClient from 'sparql-http-client/ParsingClient';
 import SimpleClient from 'sparql-http-client/SimpleClient';
 import { ResultRow } from 'sparql-http-client/ResultParser';
 
 import { GRAPH_CONFIG, PING } from './constants';
-import { SparqlConfig } from 'src/config/configuration';
-import { measureQueryTime } from 'src/util';
+import { SparqlConfig } from '../config/configuration';
+import { measureQueryTime } from '../util';
 import { SparqlModule } from './sparql.module';
 import {
   NeighborsResult,
@@ -22,7 +23,7 @@ import {
   getObjectsOf as queryObjectsOf,
   getGraphUpTo,
 } from './queries';
-import { SearchOptions } from 'src/labels/StoringStrategies';
+import { SearchOptions } from '../labels/StoringStrategies';
 
 @Injectable()
 export class SparqlService {
@@ -41,7 +42,7 @@ export class SparqlService {
     });
   }
 
-  private async selectWithoutParsing(query: string): Promise<SparqlRawSelect> {
+  async selectWithoutParsing(query: string): Promise<SparqlRawSelect> {
     const executedQuery = await measureQueryTime(
       (await this.simpleClient.query.select(query)).json(),
     );
@@ -55,7 +56,7 @@ export class SparqlService {
     return executedQuery.result;
   }
 
-  private async select<Q extends ResultRow>(query: string): Promise<Q[]> {
+  async select<Q extends ResultRow>(query: string): Promise<Q[]> {
     const executedQuery = await measureQueryTime(
       this.parsingClient.query.select(query) as Promise<Q[]>,
     );
@@ -98,34 +99,37 @@ export class SparqlService {
     const triples = rawResult.results.bindings.flatMap<TripleResult>(
       (binding: SparqlRawSelectBinding) => {
         const map = new Map(Object.entries(binding));
-        const variables = order.map<string | undefined>(
-          (variable) => map.get(variable)?.value,
-        );
+        const variables = order
+          .map<NamedNode | Literal | undefined>((variable) => map.get(variable))
+          .filter((value) => value); // remove undefined values
+
+        Logger.verbose(variables);
 
         let i = 0;
-        const fifo_queue: string[] = [];
+        const fifo_queue: (NamedNode | Literal)[] = [];
 
         return variables.reduceRight((acc, value) => {
           ++i;
 
-          if (value) {
-            fifo_queue.push(value);
-          }
+          fifo_queue.push(value);
 
           if (i % 3 == 0) {
             // We should have [object, predicate, subject]
             // the current subject will be the next object since we read from right to left
 
+            Logger.verbose(`i=${i}; FIFO queue: `);
+            Logger.verbose(fifo_queue, SparqlModule.name);
+
             acc.push({
               o: fifo_queue.shift(),
               p: fifo_queue.shift(),
               s: fifo_queue[0],
-            });
-            i = 0;
+            } as TripleResult);
+            i = 1;
           }
 
           return acc;
-        }, []);
+        }, [] as TripleResult[]);
       },
     ); // flatMap
 

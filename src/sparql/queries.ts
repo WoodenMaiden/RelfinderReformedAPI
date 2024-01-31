@@ -1,8 +1,8 @@
 import { PREFIX, SearchOptions, DEFAULT_SEARCH_OPTIONS } from './constants';
-import { SparqlConfig } from 'src/config/configuration';
-import { range } from 'src/util';
+import { SparqlConfig } from '../config/configuration';
+import { range } from '../util';
 
-function gen_from(graphs: string[]) {
+export function gen_from(graphs: string[]) {
   return graphs.map((g) => `FROM <${g}>`).join(' ');
 }
 

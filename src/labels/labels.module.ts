@@ -16,7 +16,7 @@ import StoringStrategy, {
   MySQLLabelModel,
   DefaultStragtegy,
 } from './StoringStrategies';
-import { SparqlModule, SparqlService } from 'src/sparql';
+import { SparqlModule, SparqlService } from '../sparql';
 
 @Module({})
 export class LabelsModule {

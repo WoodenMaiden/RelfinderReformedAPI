@@ -13,6 +13,6 @@ export class RelFinderController {
     @Body() relFinderDTO: RelFinderDTO,
     @Param('depth') depth: number,
   ) {
-    
+    return this.relFinderService.findRelations(relFinderDTO.nodes, depth);
   }
 }
