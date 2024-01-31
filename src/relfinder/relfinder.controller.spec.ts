@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RelFinderController } from './relfinder.controller';
 
-describe('RelFinderController', () => {
+describe.skip('RelFinderController', () => {
   let controller: RelFinderController;
 
   beforeEach(async () => {

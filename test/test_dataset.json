@@ -1,0 +1,706 @@
+[
+  {
+    "p": {
+      "value": "ppl:name"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "Yann"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:label"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "Yann"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:username"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "WoodenMaiden"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:name"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "user"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:label"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "user"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:username"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "user"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:hasfriend"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "http://people.local/yann"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:hasfriend"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://people.local/someUser"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://people.local/types/player"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "http://people.local/types/player"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://people.local/types/player"
+    },
+    "o": {
+      "value": "http://people.local/types/person"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends"
+    },
+    "o": {
+      "value": "http://games.local/types/game"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe"
+    },
+    "o": {
+      "value": "http://games.local/types/game"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:plays"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:mains"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:mains"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/everfrost"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/archangelstaff"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/zonhyahourglass"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counters"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/yone"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counters"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counteredby"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/cassiopea"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yone"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/cassiopea"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/irelia"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/darius"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/types/champions"
+    },
+    "o": {
+      "value": "http://games.local/types/characters"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://games.local/warframe/types/frames"
+    },
+    "o": {
+      "value": "http://games.local/types/characters"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    },
+    "o": {
+      "value": "http://games.local/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://games.local/warframe/types/weapons"
+    },
+    "o": {
+      "value": "http://games.local/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdfs:subClassOf"
+    },
+    "s": {
+      "value": "http://games.local/warframe/types/power"
+    },
+    "o": {
+      "value": "http://games.local/types/spells"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/trinity"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/hullbreaker"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/steraksgage"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/everfrost"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/archangelstaff"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/items/zonhyahourglass"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/types/items"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:plays"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:mains"
+    },
+    "s": {
+      "value": "http://people.local/someUser"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/trinity"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/hullbreaker"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:builds"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/items/steraksgage"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counteredby"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/irelia"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counteredby"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/ryze"
+    }
+  },
+  {
+    "p": {
+      "value": "lol:counters"
+    },
+    "s": {
+      "value": "http://games.local/leagueoflegends/champions/yorick"
+    },
+    "o": {
+      "value": "http://games.local/leagueoflegends/champions/darius"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/frame/garuda"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/frames"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/weapons/igniswrath"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/weapons"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/weapons/brakkkuva"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/weapons"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/weapons/mire"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/weapons"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/power/dreadmirror"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/power"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/power/bloodaltar"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/power"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/power/bloodletting"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/power"
+    }
+  },
+  {
+    "p": {
+      "value": "rdf:type"
+    },
+    "s": {
+      "value": "http://games.local/warframe/power/seekingtalons"
+    },
+    "o": {
+      "value": "http://games.local/warframe/types/power"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:plays"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/warframe"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:uses"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/warframe/weapons/igniswrath"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:uses"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/warframe/weapons/brakkkuva"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:uses"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/warframe/weapons/mire"
+    }
+  },
+  {
+    "p": {
+      "value": "ppl:mains"
+    },
+    "s": {
+      "value": "http://people.local/yann"
+    },
+    "o": {
+      "value": "http://games.local/warframe/frame/garuda"
+    }
+  },
+  {
+    "p": {
+      "value": "wf:haspower"
+    },
+    "s": {
+      "value": "http://games.local/warframe/frame/garuda"
+    },
+    "o": {
+      "value": "http://games.local/warframe/power/dreadmirror"
+    }
+  },
+  {
+    "p": {
+      "value": "wf:haspower"
+    },
+    "s": {
+      "value": "http://games.local/warframe/frame/garuda"
+    },
+    "o": {
+      "value": "http://games.local/warframe/power/bloodaltar"
+    }
+  },
+  {
+    "p": {
+      "value": "wf:haspower"
+    },
+    "s": {
+      "value": "http://games.local/warframe/frame/garuda"
+    },
+    "o": {
+      "value": "http://games.local/warframe/power/bloodletting"
+    }
+  },
+  {
+    "p": {
+      "value": "wf:haspower"
+    },
+    "s": {
+      "value": "http://games.local/warframe/frame/garuda"
+    },
+    "o": {
+      "value": "http://games.local/warframe/power/seekingtalons"
+    }
+  }
+]

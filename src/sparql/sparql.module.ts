@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { SparqlService } from './sparql.service';
 import { GRAPH_CONFIG } from './constants';
-import { SparqlConfig, Exclusions } from 'src/config/configuration';
+import { SparqlConfig, Exclusions } from '../config/configuration';
 
 @Module({
   providers: [SparqlService],

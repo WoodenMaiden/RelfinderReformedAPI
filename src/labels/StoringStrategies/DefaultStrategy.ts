@@ -1,7 +1,7 @@
 import { NodeLabel, SparqlService, SearchOptions } from '../../sparql';
 
 import StoringStrategy from './StoringStrategy';
-import { measureQueryTime } from 'src/util';
+import { measureQueryTime } from '../../util';
 
 // When no LabelStore has been provided, we will directly query the SPARQL endpoint
 // This is slower and put extra stress on your tripplestore

@@ -1,8 +1,8 @@
 import { Sequelize } from 'sequelize';
 
-import { NodeLabel } from 'src/sparql';
+import { NodeLabel } from '../../sparql';
 import LabelModel from '../LabelModel';
-import { measureQueryTime } from 'src/util';
+import { measureQueryTime } from '../../util';
 
 export class RelationnalDatabase {
   constructor(private readonly seq: Sequelize) {}
