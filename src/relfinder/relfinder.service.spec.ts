@@ -70,7 +70,7 @@ describe('RelFinderService', () => {
           namespaces: [],
         },
         graphs: [],
-        sparql_address: '',
+        sparqlAddress: '',
       } as SparqlConfig)
       .compile();
 

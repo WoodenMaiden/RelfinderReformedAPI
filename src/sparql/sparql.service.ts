@@ -34,11 +34,11 @@ export class SparqlService {
     @Inject(GRAPH_CONFIG) private readonly sparqlConfig: SparqlConfig,
   ) {
     this.parsingClient = new ParsingClient({
-      endpointUrl: sparqlConfig.sparql_address,
+      endpointUrl: sparqlConfig.sparqlAddress,
     });
 
     this.simpleClient = new SimpleClient({
-      endpointUrl: sparqlConfig.sparql_address,
+      endpointUrl: sparqlConfig.sparqlAddress,
     });
   }
 

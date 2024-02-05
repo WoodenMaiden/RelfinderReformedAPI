@@ -24,7 +24,7 @@ describe('SparqlService', () => {
               namespaces: [],
             },
             graphs: [],
-            sparql_address: 'http://localhost:8080/sparql',
+            sparqlAddress: 'http://localhost:8080/sparql',
           } as SparqlConfig,
         },
       ],
@@ -116,7 +116,7 @@ describe('SparqlService', () => {
 
 describe('SPARQL construction', () => {
   const sparqlConfig: SparqlConfig = {
-    sparql_address: '',
+    sparqlAddress: '',
     graphs: [],
     exclusions: {
       classes: [],

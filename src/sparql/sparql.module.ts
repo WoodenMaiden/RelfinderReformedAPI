@@ -19,7 +19,7 @@ export class SparqlModule {
           useFactory: (configService: ConfigService): SparqlConfig => ({
             exclusions: configService.get<Exclusions>('exclusions'),
             graphs: configService.get<string[]>('graphs'),
-            sparql_address: configService.get<string>('sparql_address'),
+            sparqlAddress: configService.get<string>('sparqlAddress'),
           }),
         },
         SparqlService,
