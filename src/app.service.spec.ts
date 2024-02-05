@@ -33,7 +33,7 @@ describe('AppService', () => {
               provide: ConfigService,
               useValue: {
                 get: jest.fn((key: string) =>
-                  key === 'sparql_address' ? 'http://someurl' : null,
+                  key === 'sparqlAddress' ? 'http://someurl' : null,
                 ),
               },
             },

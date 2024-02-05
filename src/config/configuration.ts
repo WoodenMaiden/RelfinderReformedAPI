@@ -1,3 +1,5 @@
+import { LogLevel } from '@nestjs/common';
+
 export type LabelStoreConfig = {
   address: string;
   token?: string;
@@ -10,18 +12,27 @@ export type Exclusions = {
 
 export type Config = {
   port: number;
-  sparql_address: string; // This is required
+  sparqlAddress: string; // This is required
   labelstore?: LabelStoreConfig;
   exclusions: Exclusions;
   graphs: string[]; // if this is null all graphs are kept
+  logLevel: LogLevel[];
 };
 
-export type SparqlConfig = Omit<Config, 'labelstore' | 'port'>;
+const logLevelHierarchy = [
+  'verbose',
+  'debug',
+  'warn',
+  'error',
+  'log',
+] as LogLevel[];
+
+export type SparqlConfig = Omit<Config, 'labelstore' | 'port' | 'logLevel'>;
 
 export default (): Config => {
   return {
     port: parseInt(process.env.PORT),
-    sparql_address: process.env.SPARQL_ADDRESS,
+    sparqlAddress: process.env.SPARQL_ADDRESS,
     labelstore: process.env.LABEL_STORE_URL
       ? {
           address: process.env.LABEL_STORE_URL,
@@ -33,5 +44,10 @@ export default (): Config => {
       namespaces: process.env.EXCLUDED_NAMESPACES?.split(' ') ?? [],
     },
     graphs: process.env.GRAPHS?.split(' ') ?? [],
+    logLevel: logLevelHierarchy.slice(
+      logLevelHierarchy.indexOf(
+        process.env.LOG_LEVEL.toLowerCase() as LogLevel,
+      ),
+    ),
   };
 };

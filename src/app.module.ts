@@ -26,6 +26,10 @@ import configuration from './config/configuration';
         EXCLUDED_CLASSES: Joi.string().optional(),
         EXCLUDED_NAMESPACES: Joi.string().optional(),
         GRAPHS: Joi.string().optional(),
+        LOG_LEVEL: Joi.string()
+          .valid('log', 'error', 'warn', 'debug', 'verbose')
+          .insensitive()
+          .default('log'),
       }),
     }),
     ApiStatsModule,

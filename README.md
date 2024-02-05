@@ -48,6 +48,7 @@ docker run [-e ENV_VARS=values] relfinder_reformed
 |Environment Variable|Type|Description|Required|Default value|
 |:-:|:-:|:-:|:-:|:-:|
 |`SPARQL_ADDRESS`|string(url)|Address of SPARQL endpoint (Required)|✅||
+|`LOG_LEVEL`|string, one of: `verbose` `debug` `warn` `error` `log`|The log verbosity|❌|`error`|
 |`PORT`|integer|Port to listen on|❌|3000|
 |`INCLUDED_GRAPHS`|string[]|Defines graphs to select from in queries|❌||
 |`EXCLUDED_CLASSES`|string[]|Defines classes to exclude from in queries|❌||

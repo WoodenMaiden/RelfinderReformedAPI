@@ -25,7 +25,7 @@ export class AppService {
       message: 'OK!',
       APIVersion: process.env.VERSION ?? 'unknown', // TODO
       endpoint: {
-        url: this.configService.get<string>('sparql_address'),
+        url: this.configService.get<string>('sparqlAddress'),
         time: (await measureQueryTime(this.sparqlService.ping())).time,
       },
       labelStore: { time: await this.labelsService.ping() },
