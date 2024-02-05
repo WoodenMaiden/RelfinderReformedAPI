@@ -1,65 +1,60 @@
 # Relfinder Reformed API 
 
 ## What does it do ?
-This APi is here to replace (Relfinder)[https://github.com/VisualDataWeb/RelFinder].
+This nestjs API is here to replace [Relfinder](https://github.com/VisualDataWeb/RelFinder).
 It queries the graphs from a RDF database, in order to show relations between two RDF entities.
 
 ## How does it work ?
 When a request is sent on the ``/relfinder/{depth}``, the API fetches a subgraph from the database. It then applies the Kosaraju Algorithm and factorize all the Strongly Connected Components (SCCs) into a single node, this helps on larger graphs. Finally a pathfinding algorithm runs to find a path between the two entities.
 ![steps of RFR](/img/schema_rfr_api.png)
 
-More info on the [http://localhost:8080/docs](http://localhost:8080/docs) endpoint.
+More info on the [/docs](http://localhost:3000/docs) endpoint.
 
 # Setup
 
+```sh
+npm i -g @nestjs/cli
+
+git clone git@github.com:WoodenMaiden/RelfinderReformedAPI.git
+cd RelfinderReformedAPI
+npm i
+```
+
 ## Usage
 
-```sh
-node . [url] [CLI options]
-```
-or 
 ```sh
 export ENV_VARIABLE=somevalue
 export ENV_VARIABLE2=somevalue
 export ENV_VARIABLE3=somevalue
 ...
-node . [url]
+npm run [start:dev | start:debug | start:prod]
 ```
 
 with Dockerfile
 ```sh
+docker build -t relfinderreformedapi .
+# or from the hub 
 docker pull ghcr.io/woodenmaiden/relfinderreformedapi:latest
-docker run [-e ENV_VARS=values] relfinder_reformed [url] [CLI options]
+
+
+docker run [-e ENV_VARS=values] relfinder_reformed
 ```
 
 ## Env variables
-<!-- |Option|Type|Description|Default value|
-|-|-|-|-|
-|url|string(url)|Address of SPARQL endpoint (Required)||
-|`-c` `--check-connection`|`none` `strict` `no-crash`|checks is the endpoint is reachable at startup, crashes if `strict` is used|`none`|
-|`-l` `--logs`|string[]|Files to write logs into|/dev/stdout|
-|`--loglevel`|`FATAL` `ERROR` `WARN` `INFO` `DEBUG` `DEBUG`|Log level|`INFO`|
-|`-p` `--port`|integer|Port to listen on|8080|
-|`--included-graphs`|string[]|Defines graphs to select from in queries||
-|`--included-classes`|string[]|Defines classes to select from in queries||
-|`--included-namespaces`|string[]|Defines namespaces to select from in queries||
-|`--excluded-classes`|string[]|Defines classes to exclude from in queries||
-|`--excluded-namespaces`|string[]|Defines namespaces to exclude from in queries||
-|`--label-store-URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets||
-|`--label-store-token`|string|An API token to use to connect to the label store if needed (ElasticSearch for instance)||
 
-> ⚠️ Environment variables will override and take priority over CLI arguments
-## Env variables
-|Variable|
-|-|
-|SPARQL_ADDRESS|
-|LABEL_STORE_URL|
-|LABEL_STORE_TOKEN|
-|INCLUDED_CLASSES|
-|EXCLUDED_CLASSES|
-|INCLUDED_GRAPHS|
-|INCLUDED_NAMESPACES|
-|EXCLUDED_NAMESPACES| -->
+> [!TIP]
+> Arrays of strings are to be separated by a space.
+
+|Environment Variable|Type|Description|Required|Default value|
+|:-:|:-:|:-:|:-:|:-:|
+|`SPARQL_ADDRESS`|string(url)|Address of SPARQL endpoint (Required)|✅||
+|`PORT`|integer|Port to listen on|❌|3000|
+|`INCLUDED_GRAPHS`|string[]|Defines graphs to select from in queries|❌||
+|`EXCLUDED_CLASSES`|string[]|Defines classes to exclude from in queries|❌||
+|`EXCLUDED_NAMESPACES`|string[]|Defines namespaces to exclude from in queries|❌||
+|`LABEL_STORE_URL`|string|An optionnal connection URL to a database storing labels. This comes in handy in larger datasets|❌||
+|`LABEL_STORE_TOKEN`|string|An API token to use to connect to the label store if needed (ElasticSearch for instance)|❌||
+
 
 # Label stores
 
