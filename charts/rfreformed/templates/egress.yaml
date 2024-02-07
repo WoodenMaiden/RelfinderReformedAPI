@@ -1,0 +1,14 @@
+{{- if .Values.egress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-traffic
+spec:
+  podSelector: 
+    matchLabels: 
+      {{- include "api.selectorLabels" . | nindent 6 }}
+  egress:
+    {{- .Values.externalTraffic | toYaml | nindent 4 }}   
+  policyTypes:
+    - Egress
+{{- end }}
