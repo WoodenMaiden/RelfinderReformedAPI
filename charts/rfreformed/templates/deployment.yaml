@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "api.fullname" . }}
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "api.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+          - name: SPARQL_ADDRESS
+            value: {{ .Values.sparqlConfig.sparqlAddress | quote }}
+          - name: LOG_LEVEL
+            value: {{ .Values.apiConfig.logLevel }}
+          - name: PORT
+            value: {{ .Values.apiConfig.port | default 80 | quote }}
+          - name: INCLUDED_GRAPHS
+            value: {{ .Values.sparqlConfig.includedGraphs | join " " | quote }}
+          - name: EXCLUDED_CLASSES
+            value: {{ .Values.sparqlConfig.exclusions.classes | join " " | quote }}
+          - name: EXCLUDED_NAMESPACES
+            value: {{ .Values.sparqlConfig.exclusions.namespaces | join " " | quote }}
+          {{- if .Values.labelStore.use }}
+          - name: LABEL_STORE_URL
+            value: {{ .Values.labelStore.config.url }}
+          - name: LABEL_STORE_TOKEN
+            value: {{ .Values.labelStore.config.token }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.apiConfig.port | default 80 }}
+              protocol: TCP
+          {{- if not .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.apiConfig.port }}
+            initialDelaySeconds: 15
+          {{- end }}
+          {{- if not .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.apiConfig.port }}
+            initialDelaySeconds: 15
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

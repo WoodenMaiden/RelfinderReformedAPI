@@ -1,0 +1,75 @@
+apiVersion: v2
+name: relfinder-reformed
+description: >
+  A Typescript re-implementation of RelFinder: A tool to show relations between entities in a RDF gnowledge graph
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.0
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: '1.0.0beta'
+
+icon: https://raw.githubusercontent.com/WoodenMaiden/RelfinderReformedAPI/master/img/icon.svg
+home: https://github.com/WoodenMaiden/RelfinderReformedFront
+
+keywords:
+  - 'Typescript'
+  - 'NestJS'
+  - 'RDF'
+  - 'Semantic Web'
+
+maintainers:
+  - name: Yann POMIE
+    email: yann.pomie@laposte.net
+    url: https://yann-pomie.fr
+
+dependencies:
+  - name: elasticsearch
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    version: ~19
+    condition: labelStore.createElastic,labelStore.use
+    import-values:
+      - parent: labelStore.dmbsConfig
+        child: global
+
+  - name: postgresql
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    version: 14.0.1
+    condition: labelStore.createPostgres,labelStore.use
+    import-values:
+      - parent: labelStore.dmbsConfig
+        child: global
+
+  - name: mysql
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    version: 9.19.1
+    condition: labelStore.createMySQL,labelStore.use
+    import-values:
+      - parent: labelStore.dmbsConfig
+        child: global
+
+  - name: mariadb
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    version: 15.0.0
+    condition: labelStore.createMariaDB,labelStore.use
+    import-values:
+      - parent: labelStore.dmbsConfig
+        child: global
+
+sources:
+  - 'https://github.com/WoodenMaiden/RelfinderReformedAPI'
+  - 'https://github.com/WoodenMaiden/RelfinderReformedFront'

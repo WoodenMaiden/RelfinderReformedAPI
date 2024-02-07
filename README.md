@@ -63,6 +63,9 @@ docker run [-e ENV_VARS=values] relfinder_reformed
 | `EXCLUDED_NAMESPACES` |                        string[]                        |                          Defines namespaces to exclude from in queries                           |    ❌    |               |
 |   `LABEL_STORE_URL`   |                         string                         | An optionnal connection URL to a database storing labels. This comes in handy in larger datasets |    ❌    |               |
 |  `LABEL_STORE_TOKEN`  |                         string                         |     An API token to use to connect to the label store if needed (ElasticSearch for instance)     |    ❌    |               |
+|  `HTTPS_KEY_FILE`  |                         string                         |     SSL private key file location    |    ❌    |               |
+|  `HTTPS_CERT_FILE`  |                         string                         |     SSL public certificate file location    |    ❌    |               |
+
 
 # Label stores
 

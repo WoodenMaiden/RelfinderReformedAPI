@@ -6,6 +6,7 @@ import { HealthResponse } from './HealthResponse';
 import { ApiStatsService } from './api_stats';
 import { ConfigService } from '@nestjs/config';
 import { LabelsService } from './labels/labels.service';
+import { version } from '../package.json';
 
 @Injectable()
 export class AppService {
@@ -23,7 +24,7 @@ export class AppService {
 
     return {
       message: 'OK!',
-      APIVersion: process.env.VERSION ?? 'unknown', // TODO
+      APIVersion: version,
       endpoint: {
         url: this.configService.get<string>('sparqlAddress'),
         time: (await measureQueryTime(this.sparqlService.ping())).time,
