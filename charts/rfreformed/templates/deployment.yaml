@@ -24,7 +24,6 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "api.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -56,18 +55,18 @@ spec:
             - name: http
               containerPort: {{ .Values.apiConfig.port | default 80 }}
               protocol: TCP
-          {{- if not .Values.probes.liveness.enabled }}
+          {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}
-              port: {{ .Values.apiConfig.port }}
+              port: http
             initialDelaySeconds: 15
           {{- end }}
-          {{- if not .Values.probes.readiness.enabled }}
+          {{- if .Values.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}
-              port: {{ .Values.apiConfig.port }}
+              port: http
             initialDelaySeconds: 15
           {{- end }}
           resources:
