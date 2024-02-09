@@ -101,15 +101,6 @@ helm delete --purge my-release
 | `egress.enabled`          | Enable egress rules                                                           | `false`                               |
 | `service.type`            | Kubernetes Service type                                                       | `ClusterIP`                           |
 
-
-### Service account
-
-| Name                      | Description                                                                  | Value                                 |
-|:---------------------------:|:------------------------------------------------------------------------------:|:---------------------------------------:|
-| `serviceAccount.create`   | Specifies whether a service account should be created                        | `false`                               |
-| `serviceAccount.annotations` | Annotations to add to the service account                                  | `{}`                                  |
-| `serviceAccount.name`     | The name of the service account to use. A name is generated if not set and `create` is true | 
-
 ### Autoscaling
 
 | Name                      | Description                                                                  | Value                                 |
