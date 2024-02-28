@@ -41,7 +41,7 @@ spec:
             value: {{ .Values.sparqlConfig.exclusions.classes | join " " | quote }}
           - name: EXCLUDED_NAMESPACES
             value: {{ .Values.sparqlConfig.exclusions.namespaces | join " " | quote }}
-          {{- if .Values.labelStore.use }}
+          {{- if .Values.labelStore.enabled }}
           - name: LABEL_STORE_URL
             value: {{ .Values.labelStore.config.url }}
           - name: LABEL_STORE_TOKEN

@@ -28,19 +28,10 @@ apiConfig:
   logLevel: error
 
 labelStore:
-  createPostgres: false
-  createMySQL: false
-  createMariaDB: false
-
-  # v Needs token
-  createElastic: false
-
-  use: false
+  enabled: false
   config:
     url: '' # your connection url
     token: '' # if you need an auth token
-
-  dmbsConfig: {}
 
 imagePullSecrets: []
 nameOverride: ''

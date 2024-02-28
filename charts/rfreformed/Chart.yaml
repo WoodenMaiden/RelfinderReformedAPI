@@ -21,7 +21,7 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: '1.0.0beta'
+appVersion: '0.1.0'
 
 icon: https://raw.githubusercontent.com/WoodenMaiden/RelfinderReformedAPI/master/img/icon.svg
 home: https://github.com/WoodenMaiden/RelfinderReformedFront
@@ -36,39 +36,6 @@ maintainers:
   - name: Yann POMIE
     email: yann.pomie@laposte.net
     url: https://yann-pomie.fr
-
-dependencies:
-  - name: elasticsearch
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: ~19
-    condition: labelStore.createElastic,labelStore.use
-    import-values:
-      - parent: labelStore.dmbsConfig
-        child: global
-
-  - name: postgresql
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: 14.0.1
-    condition: labelStore.createPostgres,labelStore.use
-    import-values:
-      - parent: labelStore.dmbsConfig
-        child: global
-
-  - name: mysql
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: 9.19.1
-    condition: labelStore.createMySQL,labelStore.use
-    import-values:
-      - parent: labelStore.dmbsConfig
-        child: global
-
-  - name: mariadb
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: 15.0.0
-    condition: labelStore.createMariaDB,labelStore.use
-    import-values:
-      - parent: labelStore.dmbsConfig
-        child: global
 
 sources:
   - 'https://github.com/WoodenMaiden/RelfinderReformedAPI'
