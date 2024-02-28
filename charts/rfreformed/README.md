@@ -17,7 +17,7 @@ This chart bootstraps a RelfinderReformed deployment on a [Kubernetes](https://k
 To install a release run the following command:
 
 ```console
-helm repo add rfreformed https://woodenmaiden.github.io/RelfinderReformedAPI/charts
+helm repo add rfreformed https://woodenmaiden.github.io/RelfinderReformedAPI
 helm repo update
 helm install my-release rfreformed/rfreformed
 ```
