@@ -35,12 +35,20 @@ spec:
             value: {{ .Values.apiConfig.logLevel }}
           - name: PORT
             value: {{ .Values.apiConfig.port | default 80 | quote }}
+          {{- if ne (.Values.sparqlConfig.includedGraphs | join " ") "" }}
           - name: INCLUDED_GRAPHS
             value: {{ .Values.sparqlConfig.includedGraphs | join " " | quote }}
+          {{- end }}
+
+          {{- if ne (.Values.sparqlConfig.exclusions.classes | join " ") "" }}
           - name: EXCLUDED_CLASSES
             value: {{ .Values.sparqlConfig.exclusions.classes | join " " | quote }}
+          {{- end }}
+
+          {{- if ne (.Values.sparqlConfig.exclusions.namespaces | join " ") "" }}
           - name: EXCLUDED_NAMESPACES
             value: {{ .Values.sparqlConfig.exclusions.namespaces | join " " | quote }}
+          {{- end }}
           {{- if .Values.labelStore.enabled }}
           - name: LABEL_STORE_URL
             value: {{ .Values.labelStore.config.url }}

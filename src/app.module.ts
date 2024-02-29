@@ -20,12 +20,12 @@ import configuration from './config/configuration';
           .valid('development', 'production', 'test')
           .default('development'),
         SPARQL_ADDRESS: Joi.string().required().uri(),
-        LABEL_STORE_URL: Joi.string().uri().optional(),
-        LABEL_STORE_TOKEN: Joi.string().optional(),
+        LABEL_STORE_URL: Joi.string().uri().optional().allow(''),
+        LABEL_STORE_TOKEN: Joi.string().optional().allow(''),
         PORT: Joi.number().default(3000),
-        EXCLUDED_CLASSES: Joi.string().optional(),
-        EXCLUDED_NAMESPACES: Joi.string().optional(),
-        GRAPHS: Joi.string().optional(),
+        EXCLUDED_CLASSES: Joi.string().optional().allow(''),
+        EXCLUDED_NAMESPACES: Joi.string().optional().allow(''),
+        GRAPHS: Joi.string().optional().allow(''),
         LOG_LEVEL: Joi.string()
           .valid('log', 'error', 'warn', 'debug', 'verbose')
           .insensitive()

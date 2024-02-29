@@ -40,10 +40,14 @@ export default (): Config => {
         }
       : null,
     exclusions: {
-      classes: process.env.EXCLUDED_CLASSES?.split(' ') ?? [],
-      namespaces: process.env.EXCLUDED_NAMESPACES?.split(' ') ?? [],
+      classes: process.env.EXCLUDED_CLASSES?.trim()
+        ? process.env.EXCLUDED_CLASSES.split(' ')
+        : [],
+      namespaces: process.env.EXCLUDED_NAMESPACES?.trim()
+        ? process.env.EXCLUDED_NAMESPACES.split(' ')
+        : [],
     },
-    graphs: process.env.GRAPHS?.split(' ') ?? [],
+    graphs: process.env.GRAPHS?.trim() ? process.env.GRAPHS.split(' ') : [],
     logLevel: logLevelHierarchy.slice(
       logLevelHierarchy.indexOf(
         process.env.LOG_LEVEL.toLowerCase() as LogLevel,
