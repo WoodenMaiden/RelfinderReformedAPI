@@ -51,9 +51,15 @@ spec:
           {{- end }}
           {{- if .Values.labelStore.enabled }}
           - name: LABEL_STORE_URL
-            value: {{ .Values.labelStore.config.url }}
+            valueFrom: 
+              secretKeyRef:
+                name: {{ include "api.fullname" . }}-labelstore-secret
+                key: uri
           - name: LABEL_STORE_TOKEN
-            value: {{ .Values.labelStore.config.token }}
+            valueFrom: 
+              secretKeyRef:
+                name: {{ include "api.fullname" . }}-labelstore-secret
+                key: token
           {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
