@@ -39,7 +39,8 @@ spec:
           - name: INCLUDED_GRAPHS
             value: {{ .Values.sparqlConfig.includedGraphs | join " " | quote }}
           {{- end }}
-
+          - name: API_PREFIX
+            value: {{ .Values.apiConfig.prefix | default "api" }}
           {{- if ne (.Values.sparqlConfig.exclusions.classes | join " ") "" }}
           - name: EXCLUDED_CLASSES
             value: {{ .Values.sparqlConfig.exclusions.classes | join " " | quote }}

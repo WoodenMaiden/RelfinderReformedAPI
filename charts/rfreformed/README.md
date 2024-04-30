@@ -66,6 +66,7 @@ helm delete --purge my-release
 | :------------------: | :-----------------------------------: | :-----: |
 |   `apiConfig.port`   | Port for the API service to listen on |  `80`   |
 | `apiConfig.logLevel` |       Logging level of the API        | `error` |
+|  `apiConfig.prefix`  |        Path Prefix for the api        |  `api`  |
 
 ### Label store
 

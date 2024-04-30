@@ -26,6 +26,13 @@ appVersion: '1.0.1'
 icon: https://raw.githubusercontent.com/WoodenMaiden/RelfinderReformedAPI/master/img/icon.svg
 home: https://github.com/WoodenMaiden/RelfinderReformedFront
 
+dependencies:
+  - name: nginx
+    version: "16.0.6"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: frontend.enable
+    alias: frontend
+    
 keywords:
   - 'Typescript'
   - 'NestJS'
