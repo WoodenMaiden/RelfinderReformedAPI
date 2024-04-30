@@ -1,6 +1,6 @@
 {
   "name": "relfinderreformed",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A nestjs API to find relations between entities in a RDF graph",
   "author": "Yann POMIE",
   "private": true,

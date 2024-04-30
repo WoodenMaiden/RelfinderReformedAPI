@@ -2,5 +2,5 @@ dependencies:
 - name: nginx
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 16.0.6
-digest: sha256:7e16264d329d8fb7d2e21192dd648f458ff5d56ce8dc63e3cf4d55288cb88227
-generated: "2024-04-30T11:47:23.207042437+02:00"
+digest: sha256:9722c3c61ef7b58159d4f6d0c897657c001e0379b993658abca4ddb5b4133125
+generated: "2024-04-30T14:54:40.484259333+02:00"
