@@ -55,23 +55,23 @@ docker run [-e ENV_VARS=values] relfinder_reformed
 
 | Environment Variable  |                          Type                          |                                           Description                                            | Required | Default value |
 | :-------------------: | :----------------------------------------------------: | :----------------------------------------------------------------------------------------------: | :------: | :-----------: |
-|   `SPARQL_ADDRESS`    |                      string(url)                       |                              Address of SPARQL endpoint (Required)                               |    ✅    |               |
+|   `SPARQL_ADDRESS`    |                      string(url)                       |                                    Address of SPARQL endpoint                                    |    ✅    |               |
 |      `LOG_LEVEL`      | string, one of: `verbose` `debug` `warn` `error` `log` |                                        The log verbosity                                         |    ❌    |    `error`    |
+|     `API_PREFIX`      |                         string                         |                                  The prefix to use for the API                                   |    ❌    |      `api`       |
 |        `PORT`         |                        integer                         |                                        Port to listen on                                         |    ❌    |     3000      |
 |   `INCLUDED_GRAPHS`   |                        string[]                        |                             Defines graphs to select from in queries                             |    ❌    |               |
 |  `EXCLUDED_CLASSES`   |                        string[]                        |                            Defines classes to exclude from in queries                            |    ❌    |               |
 | `EXCLUDED_NAMESPACES` |                        string[]                        |                          Defines namespaces to exclude from in queries                           |    ❌    |               |
 |   `LABEL_STORE_URL`   |                         string                         | An optionnal connection URL to a database storing labels. This comes in handy in larger datasets |    ❌    |               |
 |  `LABEL_STORE_TOKEN`  |                         string                         |     An API token to use to connect to the label store if needed (ElasticSearch for instance)     |    ❌    |               |
-|  `HTTPS_KEY_FILE`  |                         string                         |     SSL private key file location    |    ❌    |               |
-|  `HTTPS_CERT_FILE`  |                         string                         |     SSL public certificate file location    |    ❌    |               |
-
+|   `HTTPS_KEY_FILE`    |                         string                         |                                  SSL private key file location                                   |    ❌    |               |
+|   `HTTPS_CERT_FILE`   |                         string                         |                               SSL public certificate file location                               |    ❌    |               |
 
 # Label stores
 
 You might want users to have an URI from a label as they might not know URIS. However as your dataset gets larger and larger you would like to keep this extra query quick. This is where label stores come in handy.
 
-By default, if none is provided via the `label-store-URL` option or it's corresponding environment variable, the API will query the entire triplestore to find URI's from a label. This is not efficient and can be slow on large datasets.
+By default, if none is provided via the `LABEL_STORE_URL` environment variable, the API will query the entire triplestore to find URI's from a label. This is not efficient and can be slow on large datasets.
 A label store is a database in which you store your labels and their corresponding URI's. This allows to gain time when querying for labels, and it weight off load on your triplestore.
 
 ## Supported databases

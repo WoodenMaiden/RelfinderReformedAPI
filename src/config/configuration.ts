@@ -12,6 +12,7 @@ export type Exclusions = {
 
 export type Config = {
   port: number;
+  apiPrefix: string;
   sparqlAddress: string; // This is required
   labelstore?: LabelStoreConfig;
   exclusions: Exclusions;
@@ -27,11 +28,15 @@ const logLevelHierarchy = [
   'log',
 ] as LogLevel[];
 
-export type SparqlConfig = Omit<Config, 'labelstore' | 'port' | 'logLevel'>;
+export type SparqlConfig = Omit<
+  Config,
+  'apiPrefix' | 'labelstore' | 'port' | 'logLevel'
+>;
 
 export default (): Config => {
   return {
     port: parseInt(process.env.PORT),
+    apiPrefix: process.env.API_PREFIX.trim(),
     sparqlAddress: process.env.SPARQL_ADDRESS,
     labelstore: process.env.LABEL_STORE_URL
       ? {
