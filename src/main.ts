@@ -17,6 +17,9 @@ async function bootstrap() {
   });
 
   const port = app.get(ConfigService).get('port');
+  const apiPrefix = app.get(ConfigService).get('apiPrefix');
+
+  app.setGlobalPrefix(apiPrefix);
   app.useLogger(app.get(ConfigService).get('logLevel') as LogLevel[]);
 
   await app.listen(port);

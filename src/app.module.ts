@@ -19,6 +19,7 @@ import configuration from './config/configuration';
         NODE_ENV: Joi.string()
           .valid('development', 'production', 'test')
           .default('development'),
+        API_PREFIX: Joi.string().default('api'),
         SPARQL_ADDRESS: Joi.string().required().uri(),
         LABEL_STORE_URL: Joi.string().uri().optional().allow(''),
         LABEL_STORE_TOKEN: Joi.string().optional().allow(''),
