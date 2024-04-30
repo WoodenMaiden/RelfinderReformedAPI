@@ -8,6 +8,7 @@ on:
       - '*cd*'
       - '*ci*' # Ignore CICD branches
     paths:
+      - charts/**
       - src/**
       - test/**
       - Dockerfile
@@ -18,7 +19,7 @@ on:
 # tagged as latest and with latest commit hash (shortened)
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Clone project
@@ -33,10 +34,14 @@ jobs:
         with:
           version: latest
           config-inline: |
-            [registry."10.9.2.21:8080"]
-              http = false
+            [registry."harbor.dev.agrold.org"]
+              http = true
               insecure = true
-              ca=["/etc/docker/certs.d/10.9.2.21/ca.crt"]
+
+      - name: Insecure Docker Repository
+        run: |
+          cat /etc/docker/daemon.json | jq '.["insecure-registries"] += ["harbor.dev.agrold.org"]' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
 
       - name: 'Login to private registry at: ${{ vars.DOCKER_REGISTRY_HOST }}'
         uses: docker/login-action@v2.1.0

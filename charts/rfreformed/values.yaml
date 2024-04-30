@@ -34,7 +34,8 @@ frontend:
   # in this frontend object you can define every values you
   # would define on https://artifacthub.io/packages/helm/bitnami/nginx
   image:
-    repository: ghcr.io/woodenmaiden/relfinderreformedfront
+    registry: ghcr.io
+    repository: woodenmaiden/relfinderreformedfront
     pullPolicy: IfNotPresent
     tag: '1.1.0'
     extraEnvVars: 
