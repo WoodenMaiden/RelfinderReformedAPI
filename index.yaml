@@ -2,6 +2,37 @@ apiVersion: v1
 entries:
   relfinder-reformed:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2024-04-30T12:57:41.803801085Z"
+    dependencies:
+    - alias: frontend
+      condition: frontend.enable
+      name: nginx
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 16.0.6
+    description: 'A Typescript re-implementation of RelFinder: A tool to show relations
+      between entities in a RDF gnowledge graph '
+    digest: 6f5e735fc698e58d1bc6470fdab6368a9d5bc8d7c58ec676941fef60e87c783c
+    home: https://github.com/WoodenMaiden/RelfinderReformedFront
+    icon: https://raw.githubusercontent.com/WoodenMaiden/RelfinderReformedAPI/master/img/icon.svg
+    keywords:
+    - Typescript
+    - NestJS
+    - RDF
+    - Semantic Web
+    maintainers:
+    - email: yann.pomie@laposte.net
+      name: Yann POMIE
+      url: https://yann-pomie.fr
+    name: relfinder-reformed
+    sources:
+    - https://github.com/WoodenMaiden/RelfinderReformedAPI
+    - https://github.com/WoodenMaiden/RelfinderReformedFront
+    type: application
+    urls:
+    - https://github.com/WoodenMaiden/RelfinderReformedAPI/releases/download/relfinder-reformed-1.1.0/relfinder-reformed-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
     appVersion: 1.0.1
     created: "2024-02-29T15:06:24.795970402Z"
     description: 'A Typescript re-implementation of RelFinder: A tool to show relations
@@ -51,4 +82,4 @@ entries:
     urls:
     - https://github.com/WoodenMaiden/RelfinderReformedAPI/releases/download/relfinder-reformed-1.0.0/relfinder-reformed-1.0.0.tgz
     version: 1.0.0
-generated: "2024-02-29T15:06:24.795982745Z"
+generated: "2024-04-30T12:57:41.803817155Z"
