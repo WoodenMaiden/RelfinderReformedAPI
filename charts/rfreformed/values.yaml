@@ -38,9 +38,9 @@ frontend:
     repository: woodenmaiden/relfinderreformedfront
     pullPolicy: IfNotPresent
     tag: '1.1.0'
-    extraEnvVars: 
-      - name: RFR_API_URL
-        value: /api
+  extraEnvVars: 
+    - name: RFR_API_URL
+      value: /api
   ingress:
     enabled: true
     hostname: rfr.local
