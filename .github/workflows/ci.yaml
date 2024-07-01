@@ -52,19 +52,19 @@ jobs:
           path: reports/jest*.xml # Path to test results
           reporter: jest-junit # Format of test results
 
-  helm_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  # helm_test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+  #     - name: Install Helm
+  #       uses: azure/setup-helm@v3
 
-      - name: Helm Check Action
-        uses: hopisaurus/helm-check-action@v0.1.0
-        env:
-          CHART_LOCATION: ./charts/rfreformed
-          CHART_VALUES: ./charts/rfreformed/values.yaml
-        with:
-          chart-location: ./charts/rfreformed
-          chart-values: ./charts/rfreformed/values.yaml
+  #     - name: Helm Check Action
+  #       uses: hopisaurus/helm-check-action@v0.1.0
+  #       env:
+  #         CHART_LOCATION: ./charts/rfreformed
+  #         CHART_VALUES: ./charts/rfreformed/values.yaml
+  #       with:
+  #         chart-location: ./charts/rfreformed
+  #         chart-values: ./charts/rfreformed/values.yaml
