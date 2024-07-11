@@ -5,7 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/woodenmaiden/relfinderreformedapi
+  registry: ghcr.io
+  repository: woodenmaiden/relfinderreformedapi
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: 'latest'
