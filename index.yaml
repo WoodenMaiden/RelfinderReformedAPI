@@ -3,7 +3,7 @@ entries:
   relfinder-reformed:
   - apiVersion: v2
     appVersion: 1.1.1
-    created: "2024-07-15T12:07:46.888335738Z"
+    created: "2024-07-15T12:14:56.051876263Z"
     dependencies:
     - alias: frontend
       condition: frontend.enable
@@ -12,7 +12,7 @@ entries:
       version: 18.1.4
     description: 'A Typescript re-implementation of RelFinder: A tool to show relations
       between entities in a RDF gnowledge graph '
-    digest: 539d7863b1f4d399d552e80872a066f0dc084f1f20873ef4528e82107443b0eb
+    digest: 7d10509d6bfffe9f3bcc5bfe362bc134d2df19098c9703a1bf48922a9a0cca5c
     home: https://github.com/WoodenMaiden/RelfinderReformedFront
     icon: https://raw.githubusercontent.com/WoodenMaiden/RelfinderReformedAPI/master/img/icon.svg
     keywords:
@@ -30,7 +30,7 @@ entries:
     - https://github.com/WoodenMaiden/RelfinderReformedFront
     type: application
     urls:
-    - https://github.com/WoodenMaiden/RelfinderReformedAPI/releases/download/relfinder-reformed-1.3.1/relfinder-reformed-1.3.1.tgz
+    - https://WoodenMaiden.github.io/RelfinderReformedAPI/relfinder-reformed-1.3.1.tgz
     version: 1.3.1
   - apiVersion: v2
     appVersion: 1.1.0
@@ -113,4 +113,4 @@ entries:
     urls:
     - https://github.com/WoodenMaiden/RelfinderReformedAPI/releases/download/relfinder-reformed-1.0.0/relfinder-reformed-1.0.0.tgz
     version: 1.0.0
-generated: "2024-07-15T12:07:46.88835809Z"
+generated: "2024-07-15T12:14:56.048359996Z"
