@@ -68,11 +68,37 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        env:
-          CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@master
         with:
-          mark_as_latest: true
-          skip_existing: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          app_version: ${{ needs.set_vars.outputs.no_v }}
           charts_dir: charts
+
+  release:
+    needs: [helm_release, publish_docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Changelog from Conventional Commits
+        id: changelog
+        uses: requarks/changelog-action@v1.10.2
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+          excludeScopes: cicd,ci,cd,
+          writeToFile: false
+          useGitmojis: true
+          includeInvalidCommits: true
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}

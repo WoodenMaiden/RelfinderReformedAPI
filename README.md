@@ -1,5 +1,7 @@
 # Relfinder Reformed API
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/relfinderreformed)](https://artifacthub.io/packages/search?repo=relfinderreformed)
+
 ## What does it do ?
 
 This nestjs API is here to replace [Relfinder](https://github.com/VisualDataWeb/RelFinder).
