@@ -73,14 +73,14 @@ spec:
           {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.probes.liveness.path }}
+              path: {{ join "/" (list "/" .Values.apiConfig.prefix .Values.probes.readiness.path ) | clean }}
               port: http
             initialDelaySeconds: 15
           {{- end }}
           {{- if .Values.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.probes.readiness.path }}
+              path: {{ join "/" (list "/" .Values.apiConfig.prefix .Values.probes.readiness.path ) | clean }}
               port: http
             initialDelaySeconds: 15
           {{- end }}

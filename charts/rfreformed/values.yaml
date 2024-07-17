@@ -27,7 +27,7 @@ sparqlConfig:
 apiConfig:
   port: 80
   logLevel: error
-  prefix: "api"
+  prefix: /api
 
 frontend:
   enable: true

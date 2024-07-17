@@ -1,4 +1,4 @@
-# RelRinderReformed Stack
+# RelRinderReformed
 
 A Typescript re-implementation of RelFinder: A tool to show relations between entities in a RDF gnowledge graph.
 
