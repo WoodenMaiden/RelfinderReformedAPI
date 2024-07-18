@@ -6,7 +6,7 @@ export type GraphResults = ResultRow & {
 };
 
 export type NodeLabel = ResultRow & {
-  s: NamedNode;
+  subject: NamedNode;
   label: NamedNode;
 };
 

@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
+    cors: true,
     httpsOptions:
       process.env.HTTPS_KEY_FILE && process.env.HTTPS_CERT_FILE
         ? {

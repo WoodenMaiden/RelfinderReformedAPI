@@ -152,7 +152,7 @@ describe('SPARQL construction', () => {
     const generated_query = searchForLabel(text, searchOptions, sparqlConfig);
 
     expect(generated_query).toContain(PREFIX);
-    expect(generated_query).toContain('SELECT ?s ?label ');
+    expect(generated_query).toContain('SELECT ?subject ?label ');
     expect(generated_query).toContain('WHERE');
     expect(generated_query).toContain(
       `CONTAINS(LCASE(CONCAT(STR(?s), " ", STR(?label))), '${text}')`,

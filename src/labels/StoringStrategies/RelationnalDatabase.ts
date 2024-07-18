@@ -14,7 +14,7 @@ export class RelationnalDatabase {
         termType: 'NamedNode',
         equals: () => false,
       },
-      s: {
+      subject: {
         value: row.uri,
         termType: 'NamedNode',
         equals: () => false,

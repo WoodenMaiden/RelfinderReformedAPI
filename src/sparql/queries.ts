@@ -17,8 +17,8 @@ export function searchForLabel(
   return (
     // I am using Tobermory.es6-string-html, that's why these kind of comments :)
     /*SQL*/
-    `${PREFIX} SELECT ?s ?label ${graphs} WHERE {
-      ?s rdfs:label ?label. FILTER (
+    `${PREFIX} SELECT ?subject ?label ${graphs} WHERE {
+      ?subject rdfs:label ?label. FILTER (
         CONTAINS(LCASE(CONCAT(STR(?s), " ", STR(?label))), '${text}')
       ).
     } LIMIT ${searchOptions.limit}`
