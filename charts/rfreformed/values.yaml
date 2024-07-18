@@ -64,11 +64,18 @@ ingress:
     {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: rfr.local
-      paths:
-        - path: /api
-          pathType: ImplementationSpecific
+
+  # Points to the frontend service
+  # the api is served on /api on the same ingress
+  hostname: rfr.local
+  path: /
+  pathType: Exact
+  extraPaths: 
+    []
+    # - path: /api
+    #   backend:
+    #     serviceName: ssl-redirect
+    #     servicePort: use-annotation
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -124,11 +131,9 @@ frontend:
     registry: ghcr.io
     repository: woodenmaiden/relfinderreformedfront
     pullPolicy: IfNotPresent
-    tag: '1.1.0'
+    tag: 'latest'
   extraEnvVars: 
-    - name: RFR_API_URL
-      value: /api
+    - name: DISABLE_REDIRECT
+      value: "yes"
   ingress:
-    enabled: true
-    hostname: rfr.local
-    path: /
+    enabled: false
