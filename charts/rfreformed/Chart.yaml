@@ -32,6 +32,11 @@ dependencies:
     repository: oci://registry-1.docker.io/bitnamicharts
     condition: frontend.enable
     alias: frontend
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    tags:
+    - bitnami-common
+    version: 2.x.x
     
 keywords:
   - 'Typescript'

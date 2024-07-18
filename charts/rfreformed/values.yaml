@@ -9,7 +9,7 @@ image:
   repository: woodenmaiden/relfinderreformedapi
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 'latest'
+  # tag: 'latest'
 
 # Please refer to https://github.com/WoodenMaiden/RelfinderReformedAPI/blob/master/README.md#env-variables
 sparqlConfig:
@@ -28,24 +28,6 @@ apiConfig:
   port: 80
   logLevel: error
   prefix: /api
-
-frontend:
-  enable: true
-
-  # in this frontend object you can define every values you
-  # would define on https://artifacthub.io/packages/helm/bitnami/nginx
-  image:
-    registry: ghcr.io
-    repository: woodenmaiden/relfinderreformedfront
-    pullPolicy: IfNotPresent
-    tag: '1.1.0'
-  extraEnvVars: 
-    - name: RFR_API_URL
-      value: /api
-  ingress:
-    enabled: true
-    hostname: rfr.local
-    path: /
 
 labelStore:
   enabled: false
@@ -132,3 +114,21 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+frontend:
+  enable: true
+
+  # in this frontend object you can define every values you
+  # would define on https://artifacthub.io/packages/helm/bitnami/nginx
+  image:
+    registry: ghcr.io
+    repository: woodenmaiden/relfinderreformedfront
+    pullPolicy: IfNotPresent
+    tag: '1.1.0'
+  extraEnvVars: 
+    - name: RFR_API_URL
+      value: /api
+  ingress:
+    enabled: true
+    hostname: rfr.local
+    path: /
