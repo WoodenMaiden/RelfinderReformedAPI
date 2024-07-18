@@ -49,3 +49,7 @@ Selector labels
 app.kubernetes.io/name: {{ include "api.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{- define "api.prefix" -}}
+{{ join "" (list "/" .Values.apiConfig.prefix) | clean }}
+{{- end }}
