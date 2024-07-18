@@ -39,7 +39,9 @@ spec:
             {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.dependency.fullname" (dict "chartName" "frontend" "chartValues" .Values.frontend "context" $)) "servicePort" "http" "context" $)  | nindent 14 }}
           - path: {{ include "api.prefix" . }}
-            pathType: ImplementationSpecific
+            {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
+            pathType: {{ .Values.ingress.pathType }}
+            {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
 
   {{- if or (and .Values.ingress.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingress.annotations )) (not (empty .Values.ingress.secrets)))) .Values.ingress.extraTls }}

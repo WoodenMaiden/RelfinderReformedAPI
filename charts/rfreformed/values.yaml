@@ -70,7 +70,7 @@ ingress:
   # the api is served on /api on the same ingress
   hostname: rfr.local
   path: /
-  pathType: Exact
+  pathType: ImplementationSpecific
   extraPaths: 
     []
     # - path: /api
