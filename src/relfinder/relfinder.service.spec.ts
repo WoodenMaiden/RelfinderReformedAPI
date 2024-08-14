@@ -8,10 +8,11 @@ import { SparqlConfig } from '../config/configuration';
 import { RelFinderService } from './relfinder.service';
 import { SparqlService, TripleResult } from '../sparql';
 
-// const moduleMocker = new ModuleMocker(global);
-
 describe('RelFinderService', () => {
   let service: RelFinderService;
+
+  const isArrayUnique = (arr: Array<unknown>) =>
+    Array.isArray(arr) && new Set(arr).size === arr.length; // add function to check that array is unique.
 
   const graph: MultiDirectedGraph = new MultiDirectedGraph();
   'abcdefgh'.split('').forEach((letter) => graph.addNode(letter));
@@ -279,5 +280,8 @@ describe('RelFinderService', () => {
     expect(resultingGraph.edges()).toContainEqual('h-g');
 
     expect(resultingGraph.edges()).not.toContainEqual('h-f');
+
+    // edges should be uniques in the resulting graph
+    expect(isArrayUnique(resultingGraph.edges())).toBeTruthy();
   });
 });
