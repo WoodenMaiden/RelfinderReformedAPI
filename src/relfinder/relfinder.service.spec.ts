@@ -237,9 +237,7 @@ describe('RelFinderService', () => {
   });
 
   it('should allow to find relations between nodes that are in a single component', async () => {
-    jest.spyOn(service, 'buildGraphFromNodes').mockResolvedValue(graph);
-
-    const resultingGraph = await service.findRelations(['a', 'b', 'c'], 5);
+    const resultingGraph = await service.findRelations(graph, ['a', 'b', 'c']);
 
     expect(resultingGraph).toBeDefined();
     expect(resultingGraph.nodes()).toHaveLength(3);
@@ -251,9 +249,7 @@ describe('RelFinderService', () => {
   });
 
   it('should allow to find relations between nodes that are in different components', async () => {
-    jest.spyOn(service, 'buildGraphFromNodes').mockResolvedValue(graph);
-
-    const resultingGraph = await service.findRelations(['a', 'b', 'e'], 5);
+    const resultingGraph = await service.findRelations(graph, ['a', 'b', 'e']);
 
     expect(resultingGraph).toBeDefined();
     expect(resultingGraph.nodes()).toHaveLength(6);

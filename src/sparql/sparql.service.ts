@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { Literal, NamedNode } from 'rdf-js';
+import { Term } from 'rdf-js';
 import ParsingClient from 'sparql-http-client/ParsingClient';
 import SimpleClient from 'sparql-http-client/SimpleClient';
 import { ResultRow } from 'sparql-http-client/ResultParser';
@@ -51,7 +51,10 @@ export class SparqlService {
       `Executed SPARQL (unparsed): ${query} in ${executedQuery.time}ms`,
       SparqlModule.name,
     );
-    Logger.verbose(executedQuery.result, SparqlModule.name);
+    Logger.verbose(
+      `Unparsed SPARQL returned:\n${JSON.stringify(executedQuery.result)}`,
+      SparqlModule.name,
+    );
 
     return executedQuery.result;
   }
@@ -65,7 +68,10 @@ export class SparqlService {
       `Executed SPARQL (parsed): ${query} in ${executedQuery.time}ms`,
       SparqlModule.name,
     );
-    Logger.verbose(executedQuery.result, SparqlModule.name);
+    Logger.verbose(
+      `Parsed SPARQL returned\n${executedQuery.result}`,
+      SparqlModule.name,
+    );
 
     return executedQuery.result as Q[];
   }
@@ -96,19 +102,19 @@ export class SparqlService {
     );
 
     const order = rawResult.head.vars;
-    const triples = rawResult.results.bindings.flatMap<TripleResult>(
-      (binding: SparqlRawSelectBinding) => {
+    const triples = rawResult.results.bindings
+      .flatMap<TripleResult>((binding: SparqlRawSelectBinding) => {
         const map = new Map(Object.entries(binding));
-        const variables = order
-          .map<NamedNode | Literal | undefined>((variable) => map.get(variable))
+        const variables: Term[] = order
+          .map<Term | undefined>((variable) => map.get(variable))
           .filter((value) => value); // remove undefined values
 
         Logger.verbose(variables);
 
         let i = 0;
-        const fifo_queue: (NamedNode | Literal)[] = [];
+        const fifo_queue: Term[] = [];
 
-        return variables.reduceRight((acc, value) => {
+        return variables.reduceRight((acc: TripleResult[], value: Term) => {
           ++i;
 
           fifo_queue.push(value);
@@ -118,21 +124,41 @@ export class SparqlService {
             // the current subject will be the next object since we read from right to left
 
             Logger.verbose(`i=${i}; FIFO queue: `);
-            Logger.verbose(fifo_queue, SparqlModule.name);
+            Logger.debug(
+              fifo_queue.map((v) => v.value),
+              SparqlModule.name,
+            );
 
-            acc.push({
+            const entry: TripleResult = {
               o: fifo_queue.shift(),
               p: fifo_queue.shift(),
               s: fifo_queue[0],
-            } as TripleResult);
+            } as TripleResult;
+
+            acc.push(entry);
+
             i = 1;
           }
 
           return acc;
-        }, [] as TripleResult[]);
-      },
-    ); // flatMap
+        }, [] as TripleResult[]); // reduceRight
+      }) // flatMap
+      .filter(
+        // the results will contain duplicates, we remove them
+        (triple, index, arr) =>
+          arr.findLastIndex(
+            ({ s, p, o }) =>
+              s.termType === triple.s.termType &&
+              s.value === triple.s.value &&
+              p.termType === triple.p.termType &&
+              p.value === triple.p.value &&
+              o.termType === triple.o.termType &&
+              o.value === triple.o.value,
+          ) === index,
+      ); // const triples
 
-    return [...new Set(triples)]; // to remove duplicates
+    Logger.verbose(`Fetched ${triples.length} edges`, SparqlService.name);
+
+    return triples;
   }
 }

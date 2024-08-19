@@ -13,6 +13,11 @@ export class RelFinderController {
     @Body() relFinderDTO: RelFinderDTO,
     @Param('depth') depth: number,
   ) {
-    return this.relFinderService.findRelations(relFinderDTO.nodes, depth);
+    const { nodes } = relFinderDTO;
+
+    return this.relFinderService.findRelations(
+      await this.relFinderService.buildGraphFromNodes(nodes, depth),
+      nodes,
+    );
   }
 }

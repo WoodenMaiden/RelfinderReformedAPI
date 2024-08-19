@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MultiDirectedGraph } from 'graphology';
 import { bidirectional } from 'graphology-shortest-path/unweighted';
 
@@ -43,6 +43,11 @@ export class RelFinderService {
 
     graphNodes.forEach((node) => graph.addNode(node));
     graphEdges.forEach(([s, p, o]) => graph.addEdge(s, o, { value: p }));
+
+    Logger.verbose(
+      `Built ${graph.order} nodes and ${graph.size} edges`,
+      RelFinderService.name,
+    );
 
     return graph;
   }
@@ -181,10 +186,9 @@ export class RelFinderService {
   }
 
   async findRelations(
+    graph: MultiDirectedGraph,
     startingNodes: string[],
-    depth: number,
   ): Promise<MultiDirectedGraph> {
-    const graph = await this.buildGraphFromNodes(startingNodes, depth);
     const connected_components = this.tarjansAlgorithm(graph);
 
     // we check if all the starting nodes are in the same connected component
@@ -238,6 +242,11 @@ export class RelFinderService {
     graph.nodes().forEach((node) => {
       nodesToKeep.includes(node) || graph.dropNode(node);
     });
+
+    Logger.verbose(
+      `Found relations among ${graph.order} nodes linked by ${graph.size} edges`,
+      RelFinderService.name,
+    );
 
     return graph;
   }
