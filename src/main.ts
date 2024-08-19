@@ -1,5 +1,5 @@
 import { NestApplication, NestFactory } from '@nestjs/core';
-import { LogLevel, Logger } from '@nestjs/common';
+import { LogLevel, Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'graceful-fs';
 
@@ -21,6 +21,12 @@ async function bootstrap() {
   const apiPrefix = app.get(ConfigService).get('apiPrefix');
 
   app.setGlobalPrefix(apiPrefix);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      disableErrorMessages: process.env.NODE_ENV === 'production',
+      transform: false,
+    }),
+  );
   app.useLogger(app.get(ConfigService).get('logLevel') as LogLevel[]);
 
   await app.listen(port);
