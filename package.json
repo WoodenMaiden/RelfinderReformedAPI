@@ -5,6 +5,9 @@
   "author": "Yann POMIE",
   "private": true,
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [
     "API",
     "RDF",
