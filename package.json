@@ -34,6 +34,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^4.0.0",
     "@nestjs/sequelize": "^10.0.0",
+    "@nestjs/swagger": "^7.4.0",
     "class-validator": "^0.14.1",
     "graphology": "^0.25.4",
     "graphology-shortest-path": "^2.0.2",

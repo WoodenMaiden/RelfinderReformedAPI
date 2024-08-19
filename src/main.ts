@@ -1,7 +1,10 @@
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { LogLevel, Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { readFileSync } from 'graceful-fs';
+
+import { version as appVersion } from 'package.json';
 
 import { AppModule } from './app.module';
 
@@ -28,6 +31,28 @@ async function bootstrap() {
     }),
   );
   app.useLogger(app.get(ConfigService).get('logLevel') as LogLevel[]);
+
+  SwaggerModule.setup(
+    apiPrefix,
+    app,
+    SwaggerModule.createDocument(
+      app,
+      new DocumentBuilder()
+        .setTitle('RelFinderReformed')
+        .setDescription("RelFinderReformed's API")
+        .setVersion(appVersion)
+        .setContact(
+          'Yann "WoodenMaiden" POMIE',
+          'https://yann-pomie.fr',
+          'yann.pomie@laposte.net',
+        )
+        .setLicense(
+          'MIT',
+          'https://github.com/WoodenMaiden/RelfinderReformedAPI/blob/master/LICENSE',
+        )
+        .build(),
+    ),
+  );
 
   await app.listen(port);
 
