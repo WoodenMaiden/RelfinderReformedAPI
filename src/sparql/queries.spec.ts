@@ -3,7 +3,7 @@ import { PREFIX } from '../sparql/constants';
 import { SparqlConfig } from '../config/configuration';
 
 import {
-  gen_from,
+  genFromClause,
   getObjectsOf,
   searchForLabel,
   getGraphUpTo,
@@ -22,9 +22,9 @@ describe('SPARQL query construction', () => {
   it('should generate a valid `FROM` statement', () => {
     const graphs = ['ns:1', 'ns:2', 'ns:3'];
 
-    expect(gen_from(graphs)).toBe('FROM <ns:1> FROM <ns:2> FROM <ns:3>');
-    expect(gen_from(graphs.slice(0, 1))).toBe('FROM <ns:1>');
-    expect(gen_from([])).toBe('');
+    expect(genFromClause(graphs)).toBe('FROM <ns:1> FROM <ns:2> FROM <ns:3>');
+    expect(genFromClause(graphs.slice(0, 1))).toBe('FROM <ns:1>');
+    expect(genFromClause([])).toBe('');
   });
 
   it('should generate a SPARQL Query to get direct objects', () => {
