@@ -56,7 +56,7 @@ describe('SPARQL query construction', () => {
   });
 
   describe('Generate a SPARQL Query to explore a graph up to a certain depth', () => {
-    it('should generate a valid query for a max depth of 0', () => {
+    it('depth set at 0 should only show the starting entities', () => {
       const start_entities = ['ns:1', 'ns:2'];
       const maxDepth = 0;
 
@@ -67,18 +67,24 @@ describe('SPARQL query construction', () => {
       );
 
       expect(generated_query).toContain(PREFIX);
-      expect(generated_query).toContain('SELECT ?s ?p ?o ');
+      expect(generated_query).toContain('SELECT DISTINCT ?s');
+
+      expect(generated_query).not.toContain('SELECT DISTINCT ?s ?p ?o');
+      expect(generated_query).not.toContain(
+        'SELECT DISTINCT ?s ?p ?intermediate',
+      );
+
       expect(generated_query).toContain('WHERE');
       expect(generated_query).toContain(
         `VALUES ?s { <${start_entities.join('> <')}> }`,
       );
-      expect(generated_query).toContain('?s ?p ?o .');
+      expect(generated_query).toContain('?s ?p ?o.');
 
-      expect(generated_query).not.toContain('?s ?p ?intermediate');
+      expect(generated_query).not.toContain('?s ?p ?intermediate.');
       expect(generated_query).not.toContain('UNION');
     });
 
-    it('should generate a valid query for a max depth of 1', () => {
+    it('depth set at 1 should only show the direct neighbors of the starting entities', () => {
       const start_entities = ['ns:1', 'ns:2'];
       const maxDepth = 1;
 
@@ -89,16 +95,16 @@ describe('SPARQL query construction', () => {
       );
 
       expect(generated_query).toContain(PREFIX);
-      expect(generated_query).toContain('SELECT ?s ?p ?o ');
+      expect(generated_query).toContain('SELECT DISTINCT ?s ?p ?o ');
       expect(generated_query).toContain('WHERE');
       expect(generated_query).toContain(
         `VALUES ?s { <${start_entities.join('> <')}> }`,
       );
-      expect(generated_query).toContain('?s ?p ?o .');
+      expect(generated_query).toContain('?s ?p ?o.');
 
-      expect(generated_query).toContain('UNION');
-      expect(generated_query).toContain('?s ?p ?intermediate');
-      expect(generated_query).toContain('?intermediate ?_p ?o');
+      expect(generated_query).not.toContain('UNION');
+      expect(generated_query).not.toContain('?s ?p ?intermediate.');
+      expect(generated_query).not.toContain('?intermediate ?_p ?o.');
     });
 
     it('should generate a valid query for a max depth of 3', () => {
@@ -111,11 +117,19 @@ describe('SPARQL query construction', () => {
         sparqlConfig,
       );
 
+      expect(generated_query).toContain(
+        'SELECT DISTINCT ?s ?p ?intermediate ?_p ?_intermediate ?__p ?o',
+      );
+
       expect(generated_query).toContain('UNION');
-      expect(generated_query).toContain('?s ?p ?intermediate');
-      expect(generated_query).toContain('?intermediate ?_p ?_intermediate');
-      expect(generated_query).toContain('?_intermediate ?__p ?__intermediate');
-      expect(generated_query).toContain('?__intermediate ?___p ?o');
+      expect(generated_query).toContain('?s ?p ?intermediate.');
+      expect(generated_query).toContain('?intermediate ?_p ?_intermediate.');
+      expect(generated_query).toContain('?_intermediate ?__p ?o.');
+
+      expect(generated_query).not.toContain(
+        '?_intermediate ?__p ?__intermediate.',
+      );
+      expect(generated_query).not.toContain('?__intermediate ?___p ?o.');
     });
   });
 });

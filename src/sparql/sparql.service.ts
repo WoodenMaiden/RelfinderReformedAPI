@@ -109,8 +109,6 @@ export class SparqlService {
           .map<Term | undefined>((variable) => map.get(variable))
           .filter((value) => value); // remove undefined values
 
-        Logger.verbose(variables);
-
         let i = 0;
         const fifo_queue: Term[] = [];
 
@@ -124,7 +122,7 @@ export class SparqlService {
             // the current subject will be the next object since we read from right to left
 
             Logger.verbose(`i=${i}; FIFO queue: `);
-            Logger.debug(
+            Logger.verbose(
               fifo_queue.map((v) => v.value),
               SparqlModule.name,
             );
@@ -162,7 +160,7 @@ export class SparqlService {
           ) === index,
       ); // const triples
 
-    Logger.verbose(`Fetched ${triples.length} edges`, SparqlService.name);
+    Logger.debug(`Fetch graph w/ ${triples.length} edges`, SparqlService.name);
 
     return triples;
   }
