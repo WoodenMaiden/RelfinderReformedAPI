@@ -22,6 +22,22 @@ export class RelFinderService {
   ): Promise<MultiDirectedGraph> {
     const graph = new MultiDirectedGraph();
 
+    if (maxDepth < 0) throw new Error('Depth must be greater than 0');
+
+    if (maxDepth === 0) {
+      graph.import({
+        options: {
+          type: 'directed',
+          multi: true,
+          allowSelfLoops: true,
+        },
+        nodes: startingNodes.map((node) => ({ key: node })),
+        edges: [],
+      });
+
+      return graph;
+    }
+
     const triples = await this.sparqlService.fetchGraphFrom(
       startingNodes,
       maxDepth,
