@@ -144,7 +144,12 @@ export class SparqlService {
         }, [] as TripleResult[]); // reduceRight
       }) // flatMap
       .filter(
-        // the results will contain duplicates, we remove them
+        // the results will contain duplicates, since it is under the form
+        // a: b: c:
+        // a: b: c: d: e: f:
+        // a: b: c: d: e: f: g: h: i:
+        // ...
+        // so we remove them
         (triple, index, arr) =>
           arr.findLastIndex(
             ({ s, p, o }) =>

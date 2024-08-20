@@ -122,6 +122,10 @@ export class RelFinderService {
       }
     });
 
+    graph.nodes().forEach((node) => {
+      graph.replaceNodeAttributes(node, {});
+    });
+
     return output;
   }
 

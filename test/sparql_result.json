@@ -1,0 +1,426 @@
+{
+  "head": { "link": [], "vars": ["s", "p", "intermediate", "_p", "o"] },
+  "results": {
+    "distinct": false,
+    "ordered": true,
+    "bindings": [
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": { "type": "uri", "value": "http://people.local/types/player" }
+      },
+      {
+        "s": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/irelia"
+        },
+        "p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/types/champions"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": {
+          "type": "uri",
+          "value": "http://www.w3.org/2000/01/rdf-schema#label"
+        },
+        "o": { "type": "literal", "value": "Yann" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#name" },
+        "o": { "type": "literal", "value": "Yann" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#username" },
+        "o": { "type": "literal", "value": "WoodenMaiden" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "o": { "type": "uri", "value": "http://people.local/someUser" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#plays" },
+        "o": { "type": "uri", "value": "http://games.local/leagueoflegends" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/types/player"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        },
+        "o": { "type": "uri", "value": "http://people.local/types/person" }
+      },
+      {
+        "s": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/irelia"
+        },
+        "p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/types/champions"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        },
+        "o": { "type": "uri", "value": "http://games.local/types/characters" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": { "type": "uri", "value": "http://people.local/types/player" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/2000/01/rdf-schema#label"
+        },
+        "o": { "type": "literal", "value": "user" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": { "type": "uri", "value": "http://people.local#name" },
+        "o": { "type": "literal", "value": "user" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": { "type": "uri", "value": "http://people.local#username" },
+        "o": { "type": "literal", "value": "user" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "o": { "type": "uri", "value": "http://people.local/yann" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": { "type": "uri", "value": "http://people.local#plays" },
+        "o": { "type": "uri", "value": "http://games.local/leagueoflegends" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#hasfriend" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://people.local/someUser"
+        },
+        "_p": { "type": "uri", "value": "http://people.local#mains" },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#plays" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": { "type": "uri", "value": "http://games.local/types/game" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/types/champions"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/everfrost"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/archangelstaff"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/zonhyahourglass"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counters"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counters"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yone"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counteredby"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/cassiopea"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/types/champions"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/trinity"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/hullbreaker"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#builds"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/items/steraksgage"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counters"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/darius"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counteredby"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/ryze"
+        }
+      },
+      {
+        "s": { "type": "uri", "value": "http://people.local/yann" },
+        "p": { "type": "uri", "value": "http://people.local#mains" },
+        "intermediate": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/yorick"
+        },
+        "_p": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends#counteredby"
+        },
+        "o": {
+          "type": "uri",
+          "value": "http://games.local/leagueoflegends/champions/irelia"
+        }
+      }
+    ]
+  }
+}

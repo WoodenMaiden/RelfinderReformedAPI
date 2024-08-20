@@ -1,13 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SparqlRawSelect, SparqlService, SearchOptions } from '../sparql';
-import { GRAPH_CONFIG, PREFIX } from '../sparql/constants';
-import {
-  gen_from,
-  getObjectsOf,
-  searchForLabel,
-  getGraphUpTo,
-} from '../sparql/queries';
+import { SparqlRawSelect, SparqlService } from '../sparql';
+import { GRAPH_CONFIG } from '../sparql/constants';
+
 import { SparqlConfig } from '../config/configuration';
+
+import yann_irelia_response from '../../test/sparql_result.json';
+
+function deepEqual(obj1, obj2) {
+  if (obj1 === obj2) return true;
+
+  if (
+    typeof obj1 !== 'object' ||
+    typeof obj2 !== 'object' ||
+    obj1 === null ||
+    obj2 === null
+  ) {
+    return false;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function hasDuplicates(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (deepEqual(arr[i], arr[j])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 describe('SparqlService', () => {
   let service: SparqlService;
@@ -37,7 +73,7 @@ describe('SparqlService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should fetch the graph w/ `fetchGraphFrom`', async () => {
+  it('should fetch & build the graph w/ `fetchGraphFrom`', async () => {
     const spy = jest.spyOn(service, 'selectWithoutParsing').mockResolvedValue({
       head: {
         vars: ['s', 'p', 'i', '_p', '_i', '__p', 'o'],
@@ -71,7 +107,7 @@ describe('SparqlService', () => {
       },
     } as unknown as SparqlRawSelect);
 
-    const triples = await service.fetchGraphFrom([], 0);
+    const triples = await service.fetchGraphFrom([], 0); // whatever
 
     expect(spy).toHaveBeenCalled();
     expect(triples).toHaveLength(6);
@@ -112,115 +148,104 @@ describe('SparqlService', () => {
       o: { value: 'label' },
     });
   });
-});
 
-describe('SPARQL construction', () => {
-  const sparqlConfig: SparqlConfig = {
-    sparqlAddress: '',
-    graphs: [],
-    exclusions: {
-      classes: [],
-      namespaces: [],
-    },
-  };
+  it('should parse the graph without adding several times the same triples', async () => {
+    const spy = jest
+      .spyOn(service, 'selectWithoutParsing')
+      .mockResolvedValue(yann_irelia_response as unknown as SparqlRawSelect);
 
-  it('should generate a valid `FROM` statement', () => {
-    const graphs = ['ns:1', 'ns:2', 'ns:3'];
+    const triples = await service.fetchGraphFrom([], 0); // whatever
 
-    expect(gen_from(graphs)).toBe('FROM <ns:1> FROM <ns:2> FROM <ns:3>');
-    expect(gen_from(graphs.slice(0, 1))).toBe('FROM <ns:1>');
-    expect(gen_from([])).toBe('');
-  });
+    expect(spy).toHaveBeenCalled();
+    expect(triples).toBeDefined();
 
-  it('should generate a SPARQL Query to get direct objects', () => {
-    const entity = 'http://a';
+    // results from http://localhost:8888/sparql?default-graph-uri=&query=PREFIX+rdf%3A%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E+PREFIX+rdfs%3A%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E+SELECT+%3Fs+%3Fp+%3Fintermediate+%3F_p+%3Fo+++WHERE+%7B%0D%0A++++++VALUES+%3Fs+%7B+%3Chttp%3A%2F%2Fpeople.local%2Fyann%3E+%3Chttp%3A%2F%2Fgames.local%2Fleagueoflegends%2Fchampions%2Firelia%3E+%7D%0D%0A++++++%7B%0D%0A++++++++%3Fs+%3Fp+%3Fo+.%0D%0A++++++%7D+UNION+%7B%0D%0A++++%3Fs+%3Fp+%3Fintermediate.%0D%0A++++%3Fintermediate+%3F_p+%3Fo.%0D%0A++%7D%0D%0A%0D%0A++++%7D%0D%0A&format=text%2Fhtml&timeout=0&signal_void=on
+    // total of triples is 57
+    // duplicates in the sample response are
+    // http://people.local/yann http://people.local#hasfriend http://people.local/someUser -> 7 additional times
+    // http://people.local/yann http://people.local#mains	http://games.local/leagueoflegends/champions/ryze -> 7 additional times
+    // http://people.local/yann	http://people.local#mains	http://games.local/leagueoflegends/champions/yorick -> 7 additional times
+    // http://games.local/leagueoflegends/champions/irelia http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://games.local/leagueoflegends/types/champions -> 1 additional time
+    // http://people.local/yann http://people.local#plays http://games.local/leagueoflegends -> 1 additional time
+    // http://people.local/yann http://www.w3.org/1999/02/22-rdf-syntax-ns#type	http://people.local/types/player -> 1 additional time
 
-    const generated_query = getObjectsOf(entity, sparqlConfig);
+    expect(triples).toHaveLength(33);
 
-    expect(generated_query).toContain(PREFIX);
-    expect(generated_query).toContain('SELECT ?p ?o ');
-    expect(generated_query).toContain('WHERE');
-    expect(generated_query).toContain(`<${entity}> ?p ?o.`);
-  });
-
-  it('should generate a SPARQL Query to get labels and corresponding entities', () => {
-    const text = 'some text';
-    const searchOptions: SearchOptions = {
-      limit: 100,
-    };
-
-    const generated_query = searchForLabel(text, searchOptions, sparqlConfig);
-
-    expect(generated_query).toContain(PREFIX);
-    expect(generated_query).toContain('SELECT ?subject ?label ');
-    expect(generated_query).toContain('WHERE');
-    expect(generated_query).toContain(
-      `CONTAINS(LCASE(CONCAT(STR(?s), " ", STR(?label))), '${text}')`,
-    );
-    expect(generated_query).toContain(`LIMIT ${searchOptions.limit}`);
-  });
-
-  describe('Generate a SPARQL Query to explore a graph up to a certain depth', () => {
-    it('should generate a valid query for a max depth of 0', () => {
-      const start_entities = ['ns:1', 'ns:2'];
-      const maxDepth = 0;
-
-      const generated_query = getGraphUpTo(
-        start_entities,
-        maxDepth,
-        sparqlConfig,
-      );
-
-      expect(generated_query).toContain(PREFIX);
-      expect(generated_query).toContain('SELECT ?s ?p ?o ');
-      expect(generated_query).toContain('WHERE');
-      expect(generated_query).toContain(
-        `VALUES ?s { <${start_entities.join('> <')}> }`,
-      );
-      expect(generated_query).toContain('?s ?p ?o .');
-
-      expect(generated_query).not.toContain('?s ?p ?intermediate');
-      expect(generated_query).not.toContain('UNION');
+    expect(triples).toContainEqual({
+      s: {
+        value: 'http://people.local/yann',
+        type: 'uri',
+      },
+      p: {
+        value: 'http://people.local#hasfriend',
+        type: 'uri',
+      },
+      o: {
+        value: 'http://people.local/someUser',
+        type: 'uri',
+      },
     });
 
-    it('should generate a valid query for a max depth of 1', () => {
-      const start_entities = ['ns:1', 'ns:2'];
-      const maxDepth = 1;
-
-      const generated_query = getGraphUpTo(
-        start_entities,
-        maxDepth,
-        sparqlConfig,
-      );
-
-      expect(generated_query).toContain(PREFIX);
-      expect(generated_query).toContain('SELECT ?s ?p ?o ');
-      expect(generated_query).toContain('WHERE');
-      expect(generated_query).toContain(
-        `VALUES ?s { <${start_entities.join('> <')}> }`,
-      );
-      expect(generated_query).toContain('?s ?p ?o .');
-
-      expect(generated_query).toContain('UNION');
-      expect(generated_query).toContain('?s ?p ?intermediate');
-      expect(generated_query).toContain('?intermediate ?_p ?o');
+    expect(triples).toContainEqual({
+      s: {
+        value: 'http://people.local/yann',
+        type: 'uri',
+      },
+      p: {
+        value: 'http://people.local#mains',
+        type: 'uri',
+      },
+      o: {
+        value: 'http://games.local/leagueoflegends/champions/ryze',
+        type: 'uri',
+      },
     });
 
-    it('should generate a valid query for a max depth of 3', () => {
-      const start_entities = ['ns:1', 'ns:2'];
-      const maxDepth = 3;
-
-      const generated_query = getGraphUpTo(
-        start_entities,
-        maxDepth,
-        sparqlConfig,
-      );
-
-      expect(generated_query).toContain('UNION');
-      expect(generated_query).toContain('?s ?p ?intermediate');
-      expect(generated_query).toContain('?intermediate ?_p ?_intermediate');
-      expect(generated_query).toContain('?_intermediate ?__p ?__intermediate');
-      expect(generated_query).toContain('?__intermediate ?___p ?o');
+    expect(triples).toContainEqual({
+      s: {
+        value: 'http://people.local/yann',
+        type: 'uri',
+      },
+      p: {
+        value: 'http://people.local#mains',
+        type: 'uri',
+      },
+      o: {
+        value: 'http://games.local/leagueoflegends/champions/yorick',
+        type: 'uri',
+      },
     });
+
+    expect(triples).toContainEqual({
+      s: {
+        value: 'http://games.local/leagueoflegends/champions/irelia',
+        type: 'uri',
+      },
+      p: {
+        value: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+        type: 'uri',
+      },
+      o: {
+        value: 'http://games.local/leagueoflegends/types/champions',
+        type: 'uri',
+      },
+    });
+
+    expect(triples).toContainEqual({
+      s: {
+        value: 'http://people.local/yann',
+        type: 'uri',
+      },
+      p: {
+        value: 'http://people.local#plays',
+        type: 'uri',
+      },
+      o: {
+        value: 'http://games.local/leagueoflegends',
+        type: 'uri',
+      },
+    });
+
+    expect(hasDuplicates(triples)).toBe(false);
   });
 });
