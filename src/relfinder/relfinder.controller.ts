@@ -1,4 +1,11 @@
-import { Controller, HttpCode, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  Post,
+  Body,
+  Param,
+  Logger,
+} from '@nestjs/common';
 
 import { RelFinderService } from './relfinder.service';
 import { RelFinderDTO } from './Relfinder.dto';
@@ -14,6 +21,11 @@ export class RelFinderController {
     @Param('depth') depth: number,
   ) {
     const { nodes } = relFinderDTO;
+
+    Logger.debug(
+      `Finding relations with max depth ${depth}`,
+      RelFinderController.name,
+    );
 
     return this.relFinderService.findRelations(
       await this.relFinderService.buildGraphFromNodes(nodes, depth),

@@ -36,6 +36,23 @@ export function getObjectsOf(subject_url: string, sparqlConfig: SparqlConfig) {
   );
 }
 
+const generateIntermediates = (depth: number): string[] =>
+  // ex: "{\n    ?s ?p ?intermediate.\n    ?intermediate ?_p ?_intermediate.\n?_intermediate ?__p ?o.\n  }"
+
+  range(depth).map(
+    (d) => `{
+  ?s ?p ?intermediate.
+  ${range(d + 1)
+    .map(
+      (_d) =>
+        `?${'_'.repeat(_d)}intermediate ?${'_'.repeat(_d + 1)}p ?${
+          _d === d ? 'o' : `${'_'.repeat(_d + 1)}intermediate`
+        }`,
+    )
+    .join('.\n')}.
+}`,
+  );
+
 export function getGraphUpTo(
   start_entities: string[],
   maxDepth: number,
@@ -43,40 +60,23 @@ export function getGraphUpTo(
 ) {
   const graphs = gen_from(sparqlConfig.graphs);
 
-  // ex: "{\n    ?s ?p ?intermediate.\n    ?intermediate ?_p ?_intermediate.\n?_intermediate ?__p ?o.\n  }"
-  const generateIntermediates = (depth: number): string[] =>
-    range(depth).map(
-      (d) => `{
-    ?s ?p ?intermediate.
-    ${range(d + 1)
-      .map(
-        (_d) =>
-          `?${'_'.repeat(_d)}intermediate ?${'_'.repeat(_d + 1)}p ?${
-            _d === d ? 'o' : `${'_'.repeat(_d + 1)}intermediate`
-          }`,
-      )
-      .join('.\n')}.
-  }`,
-    );
-
   return (
     /*SQL*/
-    `${PREFIX} SELECT ?s ?p ${
-      maxDepth <= 1
-        ? ''
-        : range(maxDepth)
+    `${PREFIX} SELECT DISTINCT ?s ${maxDepth > 0 ? '?p ' : ''}${
+      maxDepth > 1
+        ? range(maxDepth - 1)
             .map((d) => `?${'_'.repeat(d)}intermediate ?${'_'.repeat(d + 1)}p`)
             .join(' ') + ' '
-    }?o  ${graphs} WHERE {
+        : ''
+    }${maxDepth > 0 ? '?o' : ''} ${graphs} WHERE {
       VALUES ?s { <${start_entities.join('> <')}> }
       {
-        ?s ?p ?o .
+        ?s ?p ?o.
       }${
-        maxDepth >= 1
-          ? ` UNION ${generateIntermediates(maxDepth).join(' UNION ')}`
+        maxDepth > 1
+          ? ` UNION ${generateIntermediates(maxDepth - 1).join(' UNION ')}`
           : ''
       }
-
     }`
   );
 }
