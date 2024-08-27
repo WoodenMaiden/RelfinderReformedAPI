@@ -1,9 +1,13 @@
 import { PREFIX, SearchOptions, DEFAULT_SEARCH_OPTIONS } from './constants';
 import { SparqlConfig } from '../config/configuration';
-import { range } from '../util';
+import { range, cartesian } from '../util';
 
-export function gen_from(graphs: string[]) {
+export function genFromClause(graphs: string[]) {
   return graphs.map((g) => `FROM <${g}>`).join(' ');
+}
+
+export function filterNamespaceExclusion(variable: string, namespace: string) {
+  return `FILTER (STRSTARTS(STR(${variable}), "${namespace}"))`;
 }
 
 export function searchForLabel(
@@ -11,7 +15,7 @@ export function searchForLabel(
   searchOptions: SearchOptions,
   sparqlConfig: SparqlConfig,
 ): string {
-  const graphs = gen_from(sparqlConfig.graphs);
+  const graphs = genFromClause(sparqlConfig.graphs);
   searchOptions = { ...DEFAULT_SEARCH_OPTIONS, ...searchOptions };
 
   return (
@@ -26,12 +30,18 @@ export function searchForLabel(
 }
 
 export function getObjectsOf(subject_url: string, sparqlConfig: SparqlConfig) {
-  const graphs = gen_from(sparqlConfig.graphs);
+  const graphs = genFromClause(sparqlConfig.graphs);
 
   return (
     /*SQL*/
     `${PREFIX} SELECT ?p ?o ${graphs} WHERE {
       <${subject_url}> ?p ?o.
+      ${cartesian(['?s', '?p', '?o'], sparqlConfig.exclusions.namespaces)
+        .map(([variable, namespace]) =>
+          filterNamespaceExclusion(variable, namespace),
+        )
+        .join('\n')}
+      )}
     }`
   );
 }
@@ -58,7 +68,7 @@ export function getGraphUpTo(
   maxDepth: number,
   sparqlConfig: SparqlConfig,
 ) {
-  const graphs = gen_from(sparqlConfig.graphs);
+  const graphs = genFromClause(sparqlConfig.graphs);
 
   return (
     /*SQL*/
